@@ -237,3 +237,42 @@
 5. Tocar una tarjeta: abre el detalle. "← Volver" regresa al listado con la búsqueda intacta.
 6. Ir a `/juegos/9999`: muestra el error de "no se encontró" y el link "Ver todos los juegos".
 7. Revisar el listado en 375px (1 columna), 640px (2), 768px (3) y 1024px (4), y el detalle en celular (una columna) y desde 768px (dos columnas).
+
+## Paso 7 - Biblioteca personal (07/10/2026)
+**Qué se hizo:** el usuario puede marcar cualquier juego como "Me interesa" o "Ya jugado" desde su detalle, y ver, filtrar y cambiar sus juegos guardados en la pantalla "Mi biblioteca".
+
+**Cómo se hizo:**
+- Rama `feature/biblioteca` creada desde `dev`.
+- `src/types/juegoGuardado.ts`: se agregaron `GuardarJuegoDto` y `CambiarEstadoDto`, según el openapi.
+- `src/utils/estadoJuego.ts`: textos de cada estado ("Me interesa", "Ya jugado"), la lista de estados y `esEstadoJuego()`, que valida lo que llega en la URL.
+- `src/services/bibliotecaService.ts`: `listar(estado?)`, `guardar` (`POST /biblioteca`), `cambiarEstado` (`PATCH /biblioteca/:juegoId`) y `quitar` (`DELETE /biblioteca/:juegoId`).
+- `src/services/api.ts`: `haySesion()` dice si hay un token guardado.
+- `src/components/BotonesBiblioteca/BotonesBiblioteca.tsx`:
+  - Dos botones de alternar con `aria-pressed`. Según el estado actual, hace `POST` (no estaba guardado), `PATCH` (cambia de estado) o `DELETE` (se tocó el que ya estaba marcado).
+  - Avisa el nuevo estado con `onCambio`, recién cuando la API confirmó el cambio. Mientras espera, los botones quedan deshabilitados; los errores se muestran debajo.
+- `src/pages/Juegos/DetalleJuego.tsx`: nueva sección "En tu biblioteca". Trae la biblioteca y busca el juego para saber su estado. Sin sesión, muestra "Iniciá sesión para guardar este juego en tu biblioteca" y no le pide nada a la API.
+- `src/pages/Biblioteca/MiBiblioteca.tsx`:
+  - Pestañas Todos / Me interesa / Ya jugado. La elegida queda en la URL (`?estado=`) y el filtro lo aplica la API.
+  - Grilla de `TarjetaJuego`; el pie de cada tarjeta muestra la fecha de guardado y los `BotonesBiblioteca`.
+- `src/components/TarjetaJuego/TarjetaJuego.tsx`: el pie se puso por encima (`z-10`) del link que cubre toda la tarjeta, para que sus botones se puedan tocar.
+- Menú: link "Mi biblioteca". Rutas: `/biblioteca`.
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Estado de un juego:** la API no tiene un endpoint para consultar un solo juego, así que el detalle trae la biblioteca (`GET /biblioteca`) y lo busca ahí. No se inventó un endpoint.
+- **Botones de alternar:** tocar el estado marcado lo quita de la biblioteca. Con dos botones se cubren las tres operaciones (guardar, cambiar y quitar) sin un tercer botón "Quitar".
+- **`onCambio` después de la confirmación:** el estado cambia solo cuando la API respondió bien, así la pantalla nunca muestra algo que no se guardó. Se descartó la actualización optimista, porque habría que deshacerla si falla.
+- **La lista se actualiza sin volver a pedirla:** en una pestaña filtrada, el juego que cambia de estado o se quita desaparece al instante.
+- **Pestaña en la URL:** al recargar o volver desde un juego, se mantiene la pestaña elegida.
+- **Sin sesión no se llama a la API desde el detalle:** se evita mostrar un error 401 a alguien que solo está mirando juegos. Cuando exista el login, `haySesion()` va a seguir funcionando igual.
+
+**Requisito del TP que cubre:** biblioteca personal ("Me interesa" / "Ya jugado"). Componente con props de entrada (`estado`) y de salida (`onCambio`), eventos (click), reactividad ante el estado (botón marcado, deshabilitado mientras procesa, tarjetas que desaparecen), servicio para la API, errores amigables y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend. Cargar el token de un usuario en `localStorage` (como en el Paso 2).
+2. Sin token, el detalle de un juego muestra "Iniciá sesión para guardar este juego en tu biblioteca".
+3. Con token, en el detalle de un juego tocar "⭐ Me interesa": queda marcado. Tocar "✔ Ya jugado": cambia. Tocar de nuevo el marcado: se quita.
+4. Ir a "Mi biblioteca": aparecen los juegos guardados con la fecha. Cambiar de pestaña: la URL cambia a `?estado=...` y la lista se filtra.
+5. En la pestaña "Me interesa", pasar un juego a "Ya jugado": desaparece de esa pestaña y aparece en "Ya jugado".
+6. Con la biblioteca vacía aparece el mensaje con el link "Buscar juegos".
+7. Revisar en 375px (pestañas a todo el ancho, 1 columna), 640px, 768px y 1024px (hasta 4 columnas).

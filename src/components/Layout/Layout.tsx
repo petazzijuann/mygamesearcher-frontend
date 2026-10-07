@@ -5,6 +5,7 @@ import { MenuNavegacion, type ItemMenu } from '../MenuNavegacion/MenuNavegacion.
 const itemsMenu: ItemMenu[] = [
   { ruta: '/', texto: 'Inicio' },
   { ruta: '/juegos', texto: 'Juegos' },
+  { ruta: '/biblioteca', texto: 'Mi biblioteca' },
   { ruta: '/colecciones', texto: 'Mis colecciones' },
   { ruta: '/admin', texto: 'Administración' },
 ]

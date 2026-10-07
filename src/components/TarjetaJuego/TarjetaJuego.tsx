@@ -29,7 +29,8 @@ export function TarjetaJuego({ juego, pie }: TarjetaJuegoProps) {
           {juego.anioLanzamiento} · {juego.clasificacionEdad.nombre}
         </p>
         <ListaEtiquetas items={juego.generos} chica />
-        {pie && <div className="relative mt-auto pt-2">{pie}</div>}
+        {/* "relative z-10" deja el pie por encima del link estirado, así sus botones se pueden tocar */}
+        {pie && <div className="relative z-10 mt-auto pt-2">{pie}</div>}
       </div>
     </article>
   )

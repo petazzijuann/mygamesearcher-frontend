@@ -4,6 +4,7 @@ import { Administracion } from '../pages/Administracion/Administracion.tsx'
 import { catalogos } from '../pages/Catalogo/configCatalogos.ts'
 import { FormularioCatalogo } from '../pages/Catalogo/FormularioCatalogo.tsx'
 import { ListadoCatalogo } from '../pages/Catalogo/ListadoCatalogo.tsx'
+import { MiBiblioteca } from '../pages/Biblioteca/MiBiblioteca.tsx'
 import { DetalleColeccion } from '../pages/Colecciones/DetalleColeccion.tsx'
 import { FormularioColeccion } from '../pages/Colecciones/FormularioColeccion.tsx'
 import { ListadoColecciones } from '../pages/Colecciones/ListadoColecciones.tsx'
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Inicio /> },
       { path: 'juegos', element: <ListadoJuegos /> },
       { path: 'juegos/:id', element: <DetalleJuego /> },
+      { path: 'biblioteca', element: <MiBiblioteca /> },
       { path: 'colecciones', element: <ListadoColecciones /> },
       { path: 'colecciones/nueva', element: <FormularioColeccion key="nueva" /> },
       { path: 'colecciones/:id', element: <DetalleColeccion /> },

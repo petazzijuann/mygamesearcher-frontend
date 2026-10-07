@@ -1,12 +1,66 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { BotonesBiblioteca } from '../../components/BotonesBiblioteca/BotonesBiblioteca.tsx'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { ImagenJuego } from '../../components/ImagenJuego/ImagenJuego.tsx'
 import { ListaEtiquetas } from '../../components/ListaEtiquetas/ListaEtiquetas.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
-import { obtenerMensajeError } from '../../services/api.ts'
+import { haySesion, obtenerMensajeError } from '../../services/api.ts'
+import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import { juegoService } from '../../services/juegoService.ts'
 import type { Juego } from '../../types/juego.ts'
+import type { EstadoJuego } from '../../types/juegoGuardado.ts'
+
+// Muestra si el juego está en la biblioteca del usuario y permite cambiarlo.
+// La API no tiene un endpoint para un solo juego: se trae la biblioteca y se busca ahí.
+function SeccionBiblioteca({ juego }: { juego: Juego }) {
+  const sesion = haySesion()
+  const [estado, setEstado] = useState<EstadoJuego | null>(null)
+  const [cargando, setCargando] = useState(sesion)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!sesion) return
+    let vigente = true
+    bibliotecaService
+      .listar()
+      .then((guardados) => {
+        const guardado = guardados.find((item) => item.juegoId === juego.id)
+        if (vigente) setEstado(guardado ? guardado.estado : null)
+      })
+      .catch((errorCarga: unknown) => {
+        if (vigente) setError(obtenerMensajeError(errorCarga))
+      })
+      .finally(() => {
+        if (vigente) setCargando(false)
+      })
+    return () => {
+      vigente = false
+    }
+  }, [sesion, juego.id])
+
+  if (!sesion) {
+    return (
+      <p className="rounded-md bg-slate-100 p-3 text-sm text-slate-600">
+        Iniciá sesión para guardar este juego en tu biblioteca.
+      </p>
+    )
+  }
+  if (cargando) return <p className="text-sm text-slate-500">Consultando tu biblioteca...</p>
+  if (error) return <p className="text-sm text-red-700">{error}</p>
+
+  return (
+    <div className="flex flex-col gap-2 sm:max-w-sm">
+      <p className="text-sm font-medium text-slate-700">En tu biblioteca:</p>
+      <BotonesBiblioteca
+        juegoId={juego.id}
+        tituloJuego={juego.titulo}
+        estado={estado}
+        onCambio={setEstado}
+      />
+    </div>
+  )
+}
 
 // Detalle público de un juego (/juegos/:id).
 export function DetalleJuego() {
@@ -94,6 +148,8 @@ export function DetalleJuego() {
                 </span>
               </p>
             </header>
+
+            <SeccionBiblioteca juego={juego} />
 
             <p className="whitespace-pre-line text-slate-700">{juego.descripcion}</p>
 

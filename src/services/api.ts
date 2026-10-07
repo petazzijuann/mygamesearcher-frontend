@@ -19,6 +19,11 @@ function leerToken(): string | null {
   }
 }
 
+/** Indica si hay un token guardado (no verifica que siga vigente: eso lo dice la API con un 401) */
+export function haySesion(): boolean {
+  return leerToken() !== null
+}
+
 // Si hay un token guardado, se manda en cada pedido (lo piden las acciones de ADMIN).
 api.interceptors.request.use((config) => {
   const token = leerToken()
