@@ -276,3 +276,39 @@
 5. En la pestaña "Me interesa", pasar un juego a "Ya jugado": desaparece de esa pestaña y aparece en "Ya jugado".
 6. Con la biblioteca vacía aparece el mensaje con el link "Buscar juegos".
 7. Revisar en 375px (pestañas a todo el ancho, 1 columna), 640px, 768px y 1024px (hasta 4 columnas).
+
+## Paso 8 - Generar recomendación personalizada (07/10/2026)
+**Qué se hizo:** pantalla "Recomendame" (CUU Generar recomendación). El usuario elige plataformas, géneros y, si quiere, características, y la API devuelve de 1 a 3 juegos, que se muestran en orden y se pueden guardar en la biblioteca. Además, el menú pasó a mostrarse con ☰ hasta LG.
+
+**Cómo se hizo:**
+- Rama `feature/generar-recomendacion` creada desde `dev`.
+- `src/types/busqueda.ts`: se agregó `GenerarRecomendacionDto`, según el openapi.
+- `src/services/recomendacionService.ts`: `generar(dto)` (`POST /recomendaciones`). El Paso 9 le suma el resto.
+- `src/pages/Recomendar/Recomendar.tsx`:
+  - Sin sesión, muestra un aviso y no llama a la API.
+  - Con sesión, carga en paralelo plataformas, géneros y características, y muestra tres `SelectorMultiple` (plataformas y géneros obligatorios).
+  - Al generar, también pide la biblioteca para saber qué juegos ya están en "Me interesa".
+  - Resultados ordenados por `orden` en una lista `<ol>` de `TarjetaJuego`; el pie de cada tarjeta muestra "Recomendación #N" y los `BotonesBiblioteca`. Arriba, un resumen de los criterios usados y el botón "Cambiar criterios", que vuelve al formulario sin perder lo elegido.
+  - Si la API responde 404 (ningún juego cumple), muestra su mensaje con una sugerencia para ampliar la búsqueda.
+- `src/components/MenuNavegacion/MenuNavegacion.tsx`: el botón ☰ se ve hasta LG (`md:` → `lg:`), y el menú desplegado queda por encima del contenido (`z-20`).
+- Menú: link "Recomendame". Inicio: botón principal "Quiero una recomendación" y "Ver juegos" como secundario.
+- `src/routes/AppRouter.tsx`: ruta `/recomendar`.
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Se reutilizan `SelectorMultiple`, `TarjetaJuego` y `BotonesBiblioteca`:** se hicieron en los pasos 4, 6 y 7 pensando en esta pantalla.
+- **El 404 no se trata como error:** "ningún juego cumple los criterios" es un resultado posible de la búsqueda, así que se muestra como aviso (amarillo) con una sugerencia y no como falla (rojo).
+- **Foco al título de los resultados:** al generar, el contenido cambia abajo del formulario. Llevar la vista y el foco al título hace que se note el cambio, también con lector de pantalla.
+- **Pedir la biblioteca después de generar:** la API excluye los "Ya jugado", pero puede recomendar uno que ya está en "Me interesa". Para que el botón aparezca marcado hay que saberlo. Si ese pedido falla, la recomendación igual se muestra.
+- **Menú con ☰ hasta LG:** con 6 links (y el historial del Paso 9) no entran en una fila en 768px. Se descartó por ahora un submenú desplegable; se va a reordenar el menú cuando exista el login.
+
+**Requisito del TP que cubre:** CUU Generar recomendación personalizada. Componentes con props de entrada y de salida, eventos (submit, click), reactividad ante el estado (validación, "Buscando juegos para vos...", resultados, sin resultados), servicio para la API, errores amigables y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend. Cargar el token de un usuario en `localStorage` (como en el Paso 2) y tener juegos cargados.
+2. Sin token, "Recomendame" muestra "Iniciá sesión para recibir recomendaciones personalizadas".
+3. Con token, entrar a "Recomendame" (menú o botón del inicio). Apretar "Recomendame juegos" sin elegir nada: aparecen los errores en plataformas y géneros.
+4. Elegir plataformas y géneros y generar: la pantalla baja a los resultados (1 a 3 juegos, "Recomendación #1", "#2"...), con el resumen de criterios.
+5. Marcar un resultado como "Me interesa" y verificarlo en "Mi biblioteca". Marcar uno como "Ya jugado" y volver a generar con los mismos criterios: ese juego ya no aparece.
+6. "Cambiar criterios" vuelve al formulario con lo elegido. Elegir una combinación sin juegos: aparece el aviso amarillo con la sugerencia.
+7. Revisar en 375px (selectores y resultados en una columna), 768px (☰ todavía visible, selectores de a dos) y 1024px (menú horizontal, selectores y resultados de a tres).

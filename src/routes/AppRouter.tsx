@@ -15,6 +15,7 @@ import { FormularioJuego } from '../pages/Juegos/FormularioJuego.tsx'
 import { ListadoJuegos } from '../pages/Juegos/ListadoJuegos.tsx'
 import { ListadoJuegosAdmin } from '../pages/Juegos/ListadoJuegosAdmin.tsx'
 import { NoEncontrada } from '../pages/NoEncontrada/NoEncontrada.tsx'
+import { Recomendar } from '../pages/Recomendar/Recomendar.tsx'
 
 // Listado, alta y edición de cada catálogo. La "key" hace que React arranque
 // la pantalla de cero al pasar de un catálogo a otro (o de "nuevo" a "editar").
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorInesperado />,
     children: [
       { index: true, element: <Inicio /> },
+      { path: 'recomendar', element: <Recomendar /> },
       { path: 'juegos', element: <ListadoJuegos /> },
       { path: 'juegos/:id', element: <DetalleJuego /> },
       { path: 'biblioteca', element: <MiBiblioteca /> },

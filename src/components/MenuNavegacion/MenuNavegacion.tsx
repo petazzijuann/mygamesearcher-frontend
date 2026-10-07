@@ -23,10 +23,10 @@ export function MenuNavegacion({ items, onNavegar }: MenuNavegacionProps) {
 
   return (
     <nav aria-label="Navegación principal" className="relative">
-      {/* Botón hamburguesa: solo en celulares */}
+      {/* Botón hamburguesa: en celulares y tablets (los links no entran en una fila hasta LG) */}
       <button
         type="button"
-        className="rounded-md p-2 text-white hover:bg-indigo-600 focus:ring-2 focus:ring-white focus:outline-none md:hidden"
+        className="rounded-md p-2 text-white hover:bg-indigo-600 focus:ring-2 focus:ring-white focus:outline-none lg:hidden"
         aria-expanded={abierto}
         aria-controls="menu-principal"
         aria-label={abierto ? 'Cerrar menú' : 'Abrir menú'}
@@ -39,7 +39,7 @@ export function MenuNavegacion({ items, onNavegar }: MenuNavegacionProps) {
 
       <ul
         id="menu-principal"
-        className={`${abierto ? 'flex' : 'hidden'} absolute right-0 mt-2 w-48 flex-col gap-1 rounded-md bg-indigo-700 p-2 shadow-lg md:static md:mt-0 md:flex md:w-auto md:flex-row md:gap-2 md:bg-transparent md:p-0 md:shadow-none`}
+        className={`${abierto ? 'flex' : 'hidden'} absolute right-0 z-20 mt-2 w-56 flex-col gap-1 rounded-md bg-indigo-700 p-2 shadow-lg lg:static lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:flex-row lg:gap-1 lg:bg-transparent lg:p-0 lg:shadow-none`}
       >
         {items.map((item) => (
           <li key={item.ruta}>
