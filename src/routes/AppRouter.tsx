@@ -14,7 +14,9 @@ import { DetalleJuego } from '../pages/Juegos/DetalleJuego.tsx'
 import { FormularioJuego } from '../pages/Juegos/FormularioJuego.tsx'
 import { ListadoJuegos } from '../pages/Juegos/ListadoJuegos.tsx'
 import { ListadoJuegosAdmin } from '../pages/Juegos/ListadoJuegosAdmin.tsx'
+import { Login } from '../pages/Login/Login.tsx'
 import { NoEncontrada } from '../pages/NoEncontrada/NoEncontrada.tsx'
+import { Registro } from '../pages/Registro/Registro.tsx'
 import { DetalleRecomendacion } from '../pages/Recomendaciones/DetalleRecomendacion.tsx'
 import { HistorialRecomendaciones } from '../pages/Recomendaciones/HistorialRecomendaciones.tsx'
 import { Recomendar } from '../pages/Recomendar/Recomendar.tsx'
@@ -43,6 +45,8 @@ export const router = createBrowserRouter([
     errorElement: <ErrorInesperado />,
     children: [
       { index: true, element: <Inicio /> },
+      { path: 'login', element: <Login /> },
+      { path: 'registro', element: <Registro /> },
       { path: 'recomendar', element: <Recomendar /> },
       { path: 'recomendaciones', element: <HistorialRecomendaciones /> },
       { path: 'recomendaciones/:id', element: <DetalleRecomendacion /> },

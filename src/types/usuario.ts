@@ -12,3 +12,12 @@ export interface Usuario {
   fechaRegistro: string
   plataforma: Plataforma | null
 }
+
+/** Registro (POST /usuarios): el rol siempre queda USUARIO */
+export interface CrearUsuarioDto {
+  nombre: string
+  apellido: string
+  email: string
+  contrasena: string
+  plataformaId?: number
+}

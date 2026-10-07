@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { AvisoIniciarSesion } from '../../components/AvisoIniciarSesion/AvisoIniciarSesion.tsx'
 import { BotonesBiblioteca } from '../../components/BotonesBiblioteca/BotonesBiblioteca.tsx'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { ImagenJuego } from '../../components/ImagenJuego/ImagenJuego.tsx'
 import { ListaEtiquetas } from '../../components/ListaEtiquetas/ListaEtiquetas.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
-import { haySesion, obtenerMensajeError } from '../../services/api.ts'
+import { useSesion } from '../../context/sesion.ts'
+import { obtenerMensajeError } from '../../services/api.ts'
 import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import { juegoService } from '../../services/juegoService.ts'
 import type { Juego } from '../../types/juego.ts'
@@ -14,7 +16,7 @@ import type { EstadoJuego } from '../../types/juegoGuardado.ts'
 // Muestra si el juego está en la biblioteca del usuario y permite cambiarlo.
 // La API no tiene un endpoint para un solo juego: se trae la biblioteca y se busca ahí.
 function SeccionBiblioteca({ juego }: { juego: Juego }) {
-  const sesion = haySesion()
+  const sesion = useSesion().usuario !== null
   const [estado, setEstado] = useState<EstadoJuego | null>(null)
   const [cargando, setCargando] = useState(sesion)
   const [error, setError] = useState<string | null>(null)
@@ -40,11 +42,7 @@ function SeccionBiblioteca({ juego }: { juego: Juego }) {
   }, [sesion, juego.id])
 
   if (!sesion) {
-    return (
-      <p className="rounded-md bg-slate-100 p-3 text-sm text-slate-600">
-        Iniciá sesión para guardar este juego en tu biblioteca.
-      </p>
-    )
+    return <AvisoIniciarSesion para="guardar este juego en tu biblioteca" compacto />
   }
   if (cargando) return <p className="text-sm text-slate-500">Consultando tu biblioteca...</p>
   if (error) return <p className="text-sm text-red-700">{error}</p>

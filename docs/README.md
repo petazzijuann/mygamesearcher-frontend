@@ -20,8 +20,4 @@ La instalación y el uso están en el [README principal](../README.md).
 
 ## Cómo probar las pantallas con sesión
 
-Mientras no exista la pantalla de login:
-
-1. Login en el Swagger del backend (`http://localhost:3000/api`, `POST /auth/login`) y copiar el `token`.
-2. En la consola del navegador (F12): `localStorage.setItem('token', 'PEGAR_TOKEN')`.
-3. Recargar la página.
+Desde "Ingresar" en el encabezado: con una cuenta creada en "Crear cuenta" (rol USUARIO) o con el administrador que crea el backend al arrancar (`ADMIN_EMAIL` y `ADMIN_CONTRASENA` de su `.env`).
