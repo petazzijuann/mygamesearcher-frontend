@@ -358,3 +358,29 @@
 7. Desde los resultados de "Recomendame", el link "Ver en mi historial" abre el detalle de esa búsqueda.
 8. Ir a `/recomendaciones/9999`: muestra el error de "no se encontró".
 9. Revisar en 375px (todo en una columna, filtro apilado), 768px (historial de a dos, filtro en fila) y 1024px (menú horizontal con 7 links, detalle de a dos juegos).
+
+## Paso 10 - Comunicación con la API mediante el proxy de Vite (07/10/2026)
+**Qué se hizo:** el frontend ahora le habla a la API a través de un proxy de Vite. Todos los pedidos van a `/api/...` y Vite los reenvía al backend (`http://localhost:3000`), sacándoles el `/api`. Además, los errores del proxy (backend apagado) se muestran como "No se pudo conectar con el servidor".
+
+**Cómo se hizo:**
+- Rama `feature/proxy-vite` creada desde `dev`.
+- `vite.config.ts`: `server.proxy` para `/api`, con `target` tomado de la variable `API_PROXY_TARGET` (por defecto `http://localhost:3000`), `changeOrigin: true` y `rewrite`, que saca el `/api` del inicio. La variable se lee con `loadEnv(mode, process.cwd(), '')`.
+- `.env.example` (y el `.env` local): `VITE_API_URL=/api` y `API_PROXY_TARGET=http://localhost:3000`.
+- `src/services/api.ts`: `obtenerMensajeError` trata los 502, 503 y 504 igual que la falta de respuesta: "No se pudo conectar con el servidor".
+- Verificado:
+  - `npm run build` y `npm run lint` sin errores.
+  - Con `npx vite`, `GET /` responde 200 y `GET /api/generos` llega al proxy, que lo reenvía como `/generos` a `localhost:3000`. Con el backend apagado responde 502, que la app muestra como error de conexión.
+
+**Por qué:**
+- **CORS:** el backend no tiene CORS habilitado. El frontend corre en `localhost:5173` y la API en `localhost:3000`, que para el navegador son orígenes distintos, así que bloqueaba todas las respuestas. Con el proxy, el navegador solo habla con Vite (mismo origen) y Vite habla con la API servidor a servidor, donde CORS no aplica.
+- **Se descartó habilitar CORS en el backend**, porque la comunicación se resuelve desde el frontend con Vite, sin tocar el otro repo.
+- **`API_PROXY_TARGET` sin prefijo `VITE_`:** solo la usa la configuración de Vite y no queda expuesta en el código que llega al navegador. `VITE_API_URL` queda en `/api`, así que los servicios no cambian.
+- **Limitación:** el proxy es del servidor de desarrollo de Vite (`npm run dev`). Si la app se publica, el servidor donde se aloje tiene que hacer el mismo reenvío de `/api`, o el backend tiene que habilitar CORS.
+
+**Requisito del TP que cubre:** comunicación del frontend con la API del backend a través de la instancia común de axios, y errores de conexión mostrados de forma amigable.
+
+**Cómo probarlo:**
+1. Copiar `.env.example` a `.env` (o actualizar el `.env` existente: `VITE_API_URL` tiene que ser `/api`).
+2. Levantar el backend (`npm run start:dev` en `mygamesearcher-backend`) y el frontend (`npm run dev`). **Después de cambiar el `.env` hay que reiniciar `npm run dev`.**
+3. Entrar a "Juegos": la lista se carga desde la API. En la pestaña Red (F12) los pedidos van a `localhost:5173/api/juegos` y no hay errores de CORS.
+4. Apagar el backend y recargar: aparece "No se pudo conectar con el servidor" con el botón "Reintentar".

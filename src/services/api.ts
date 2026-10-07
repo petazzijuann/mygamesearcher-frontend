@@ -47,13 +47,15 @@ export function obtenerMensajeError(error: unknown): string {
   if (!axios.isAxiosError(error)) {
     return 'Ocurrió un error inesperado. Intentá de nuevo.'
   }
-  if (!error.response) {
+  // Sin respuesta, o 502/503/504: el proxy de Vite no pudo llegar a la API (backend apagado).
+  const status = error.response?.status
+  if (!error.response || status === 502 || status === 503 || status === 504) {
     return 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'
   }
-  if (error.response.status === 401) {
+  if (status === 401) {
     return 'Necesitás iniciar sesión para hacer esto.'
   }
-  if (error.response.status === 403) {
+  if (status === 403) {
     return 'No tenés permiso para hacer esta acción.'
   }
   const datos: unknown = error.response.data
