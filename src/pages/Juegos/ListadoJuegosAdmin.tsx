@@ -2,49 +2,43 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { DialogoConfirmacion } from '../../components/DialogoConfirmacion/DialogoConfirmacion.tsx'
+import { ImagenJuego } from '../../components/ImagenJuego/ImagenJuego.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { MensajeExito } from '../../components/MensajeExito/MensajeExito.tsx'
 import { obtenerMensajeError } from '../../services/api.ts'
-import type { ItemCatalogo } from '../../services/catalogoService.ts'
+import { juegoService } from '../../services/juegoService.ts'
+import type { Juego } from '../../types/juego.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
-import { textosCatalogo, type ConfigCatalogo } from './configCatalogos.ts'
 
-interface ListadoCatalogoProps {
-  config: ConfigCatalogo
-}
-
-// Listado con alta, edición y baja para cualquier catálogo (Género, Plataforma, ...).
-export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
-  const { rutaBase, titulo, singular, servicio } = config
-  const textos = textosCatalogo(config)
+export function ListadoJuegosAdmin() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const [items, setItems] = useState<ItemCatalogo[]>([])
+  const [juegos, setJuegos] = useState<Juego[]>([])
   const [cargando, setCargando] = useState(true)
   const [errorCarga, setErrorCarga] = useState<string | null>(null)
   const [mensajeExito, setMensajeExito] = useState<string | null>(() =>
     leerMensajeNavegacion(location.state),
   )
   const [errorAccion, setErrorAccion] = useState<string | null>(null)
-  const [aEliminar, setAEliminar] = useState<ItemCatalogo | null>(null)
+  const [aEliminar, setAEliminar] = useState<Juego | null>(null)
   const [eliminando, setEliminando] = useState(false)
 
-  const cargarItems = useCallback(async () => {
+  const cargarJuegos = useCallback(async () => {
     setCargando(true)
     setErrorCarga(null)
     try {
-      setItems(await servicio.listar())
+      setJuegos(await juegoService.listar())
     } catch (error) {
       setErrorCarga(obtenerMensajeError(error))
     } finally {
       setCargando(false)
     }
-  }, [servicio])
+  }, [])
 
   useEffect(() => {
-    void cargarItems()
-  }, [cargarItems])
+    void cargarJuegos()
+  }, [cargarJuegos])
 
   // Limpia el mensaje del historial para que no vuelva a aparecer al recargar.
   useEffect(() => {
@@ -59,9 +53,9 @@ export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
     setErrorAccion(null)
     setMensajeExito(null)
     try {
-      await servicio.eliminar(aEliminar.id)
-      setItems((actuales) => actuales.filter((item) => item.id !== aEliminar.id))
-      setMensajeExito(`Se eliminó ${textos.articulo} ${singular} "${aEliminar.nombre}".`)
+      await juegoService.eliminar(aEliminar.id)
+      setJuegos((actuales) => actuales.filter((juego) => juego.id !== aEliminar.id))
+      setMensajeExito(`Se eliminó el juego "${aEliminar.titulo}".`)
     } catch (error) {
       setErrorAccion(obtenerMensajeError(error))
     } finally {
@@ -77,13 +71,13 @@ export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
           <Link to="/admin" className="text-sm font-medium text-indigo-700 hover:underline">
             ← Volver a administración
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{titulo}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Juegos</h1>
         </div>
         <Link
-          to={`${rutaBase}/nuevo`}
+          to="/admin/juegos/nuevo"
           className="rounded-md bg-indigo-700 px-4 py-2 text-center font-medium text-white hover:bg-indigo-600"
         >
-          {textos.nuevo}
+          Nuevo juego
         </Link>
       </header>
 
@@ -92,26 +86,32 @@ export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
       )}
       {errorAccion && <MensajeError mensaje={errorAccion} />}
 
-      {cargando && <Cargando texto={`Cargando ${textos.plural}...`} />}
+      {cargando && <Cargando texto="Cargando juegos..." />}
 
       {!cargando && errorCarga && (
-        <MensajeError mensaje={errorCarga} onReintentar={() => void cargarItems()} />
+        <MensajeError mensaje={errorCarga} onReintentar={() => void cargarJuegos()} />
       )}
 
-      {!cargando && !errorCarga && items.length === 0 && (
+      {!cargando && !errorCarga && juegos.length === 0 && (
         <p className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
-          Todavía no hay {textos.plural} {textos.cargados}. Usá el botón "{textos.nuevo}" para agregar.
+          Todavía no hay juegos cargados. Usá el botón "Nuevo juego" para agregar.
         </p>
       )}
 
-      {!cargando && !errorCarga && items.length > 0 && (
+      {!cargando && !errorCarga && juegos.length > 0 && (
         // En celular cada fila se ve como una tarjeta; desde MD, como tabla.
         <table className="w-full md:overflow-hidden md:rounded-lg md:bg-white md:shadow">
-          <caption className="sr-only">Listado de {textos.plural}</caption>
+          <caption className="sr-only">Listado de juegos</caption>
           <thead className="hidden bg-slate-100 text-left text-sm text-slate-700 md:table-header-group">
             <tr>
               <th scope="col" className="px-4 py-3 font-semibold">
-                Nombre
+                Juego
+              </th>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                Año
+              </th>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                Clasificación
               </th>
               <th scope="col" className="px-4 py-3 text-right font-semibold">
                 Acciones
@@ -119,25 +119,46 @@ export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
             </tr>
           </thead>
           <tbody className="flex flex-col gap-3 md:table-row-group">
-            {items.map((item) => (
+            {juegos.map((juego) => (
               <tr
-                key={item.id}
+                key={juego.id}
                 className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow md:table-row md:rounded-none md:border-t md:border-slate-200 md:p-0 md:shadow-none"
               >
-                <td className="font-medium text-slate-900 md:px-4 md:py-3">{item.nombre}</td>
+                <td className="md:px-4 md:py-3">
+                  <div className="flex items-center gap-3">
+                    <ImagenJuego
+                      url={juego.imagenUrl}
+                      titulo={juego.titulo}
+                      className="h-16 w-12 shrink-0 rounded"
+                    />
+                    <div>
+                      <p className="font-medium text-slate-900">{juego.titulo}</p>
+                      {/* En celular el año y la clasificación van debajo del título */}
+                      <p className="text-sm text-slate-500 md:hidden">
+                        {juego.anioLanzamiento} · {juego.clasificacionEdad.nombre}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+                <td className="hidden text-slate-700 md:table-cell md:px-4 md:py-3">
+                  {juego.anioLanzamiento}
+                </td>
+                <td className="hidden text-slate-700 md:table-cell md:px-4 md:py-3">
+                  {juego.clasificacionEdad.nombre}
+                </td>
                 <td className="md:px-4 md:py-3">
                   <div className="flex gap-2 md:justify-end">
                     <Link
-                      to={`${rutaBase}/${item.id}/editar`}
-                      aria-label={`Editar ${item.nombre}`}
+                      to={`/admin/juegos/${juego.id}/editar`}
+                      aria-label={`Editar ${juego.titulo}`}
                       className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-center text-sm font-medium text-slate-700 hover:bg-slate-100 md:flex-none"
                     >
                       Editar
                     </Link>
                     <button
                       type="button"
-                      onClick={() => setAEliminar(item)}
-                      aria-label={`Eliminar ${item.nombre}`}
+                      onClick={() => setAEliminar(juego)}
+                      aria-label={`Eliminar ${juego.titulo}`}
                       className="flex-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 md:flex-none"
                     >
                       Eliminar
@@ -152,8 +173,8 @@ export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
 
       <DialogoConfirmacion
         abierto={aEliminar !== null}
-        titulo={`Eliminar ${singular}`}
-        mensaje={`¿Seguro que querés eliminar "${aEliminar?.nombre ?? ''}"? Esta acción no se puede deshacer.`}
+        titulo="Eliminar juego"
+        mensaje={`¿Seguro que querés eliminar "${aEliminar?.titulo ?? ''}"? Esta acción no se puede deshacer.`}
         textoConfirmar="Eliminar"
         procesando={eliminando}
         onConfirmar={() => void confirmarEliminacion()}
