@@ -488,3 +488,39 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 6. En el detalle de un juego sin sesión, "Iniciá sesión" lleva al login y, al ingresar, vuelve al mismo juego.
 7. Sesión vencida: con sesión iniciada, en la consola (F12) correr `localStorage.setItem('token', 'x')` y entrar a "Mi biblioteca". La app manda al login con "Tu sesión venció".
 8. Revisar en 375px (logo, "Ingresar" y ☰ en una fila), 768px y 1024px (menú en una segunda fila).
+
+## Paso 13 - Protección de pantallas según el rol (07/10/2026)
+**Qué se hizo:** las pantallas personales solo se pueden abrir con sesión iniciada, y las de Administración solo con rol ADMIN, aunque se escriba la URL a mano. Sin sesión, la app manda al login y después vuelve a la pantalla pedida. Con sesión pero sin rol ADMIN, muestra una pantalla amigable de "No tenés permiso".
+
+**Cómo se hizo:**
+- Rama `feature/proteccion-rutas` creada desde `dev`.
+- `src/components/RutaProtegida/RutaProtegida.tsx`:
+  - Ruta "layout" de react-router que recibe `requiere: 'sesion' | 'admin'`.
+  - Sin sesión: `<Navigate to="/login">` con `state.desde`, para volver después.
+  - Sin rol ADMIN donde hace falta: muestra `SinPermiso`. Si todo está bien: `<Outlet />`.
+- `src/pages/SinPermiso/SinPermiso.tsx`: "No tenés permiso para ver esta página", con link al inicio.
+- `src/routes/AppRouter.tsx`: las rutas quedaron en tres grupos.
+  - **Públicas:** inicio, login, registro, juegos y detalle de juego.
+  - **Con sesión:** recomendar, historial y detalle de recomendaciones, biblioteca y colecciones.
+  - **Solo ADMIN:** `/admin`, los ABM de catálogos y el de juegos.
+- `src/pages/Recomendar/Recomendar.tsx` y `src/pages/Recomendaciones/HistorialRecomendaciones.tsx`: se sacaron el chequeo de sesión y el aviso "Iniciá sesión", porque la ruta ya lo garantiza. En el detalle de un juego el aviso queda, porque esa pantalla es pública.
+- `src/components/Layout/Layout.tsx`: al vencer la sesión navega al login con `replace`, para no dejar una entrada de más en el historial (puede coincidir con la redirección de `RutaProtegida`).
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Esconder los links no alcanza:** cualquiera puede escribir `/admin` en la barra de direcciones. Antes, la pantalla se abría y recién la API respondía 401 o 403. Ahora el frontend no la muestra.
+- **Ruta "layout" en vez de proteger pantalla por pantalla:** una sola regla por grupo en `AppRouter`, así sumar una pantalla protegida es ponerla en el grupo correcto. Se descartó repetir el chequeo dentro de cada página.
+- **Pantalla "Sin permiso" en lugar de redirigir:** si un USUARIO entra a `/admin`, mandarlo al login no tiene sentido (ya inició sesión). Se le explica qué pasa.
+- **"Recomendame" sigue en el menú sin sesión:** es la función principal; al tocarla lleva a ingresar y después vuelve.
+- **La seguridad real la sigue haciendo el backend** (401 y 403): la protección del frontend es para que la interfaz no muestre pantallas que no se pueden usar.
+
+**Requisito del TP que cubre:** protección de pantallas según el rol (requisito de aprobación). Errores amigables (pantalla "Sin permiso") e interfaz usable sin manual (vuelve sola a la pantalla pedida después de ingresar).
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend.
+2. Sin sesión, escribir `http://localhost:5173/biblioteca`: lleva al login. Al ingresar, vuelve a "Mi biblioteca".
+3. Sin sesión, tocar "Recomendame" en el menú: lleva al login y, al ingresar, abre Recomendame.
+4. Con un usuario USUARIO (creado en "Crear cuenta"), escribir `http://localhost:5173/admin/juegos`: aparece "No tenés permiso para ver esta página".
+5. Con el ADMIN, `/admin/juegos` se abre normalmente.
+6. Con sesión en "Mis colecciones", tocar "Cerrar sesión": va al inicio. "Atrás" en el navegador lleva al login, no a la pantalla protegida.
+7. Las pantallas públicas (inicio, juegos, detalle de juego) se siguen viendo sin sesión.
