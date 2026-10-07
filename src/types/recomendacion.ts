@@ -11,3 +11,9 @@ export interface Recomendacion {
   /** Fecha en formato ISO (date-time) */
   fechaCalificacion: string | null
 }
+
+export interface CalificarRecomendacionDto {
+  /** De 1 a 5 */
+  calificacion: number
+  comentario?: string | null
+}

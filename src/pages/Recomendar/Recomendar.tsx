@@ -275,9 +275,13 @@ export function Recomendar() {
 
           <p className="text-sm text-slate-500">
             Esta búsqueda quedó guardada en tu historial.{' '}
-            <Link to="/juegos" className="font-medium text-indigo-700 hover:underline">
-              Ver todos los juegos
-            </Link>
+            <Link
+              to={`/recomendaciones/${busqueda.id}`}
+              className="font-medium text-indigo-700 hover:underline"
+            >
+              Ver en mi historial
+            </Link>{' '}
+            (ahí podés calificar cada juego).
           </p>
         </section>
       )}
