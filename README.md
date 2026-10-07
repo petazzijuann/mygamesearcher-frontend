@@ -88,6 +88,16 @@ src/
 | `npm run build` | Verifica los tipos y genera la versión de producción en `dist/` |
 | `npm run lint` | Revisa el código con oxlint |
 | `npm run preview` | Sirve la versión de producción generada |
+| `npm run test` | Corre los tests unitarios de componentes (Vitest + Testing Library) |
+| `npm run test:watch` | Igual que `test`, pero los vuelve a correr al guardar cambios |
+| `npm run test:e2e` | Corre los tests end-to-end en un navegador (Playwright). Necesita el backend levantado |
+
+### Tests
+
+- **Unitario de componente:** `src/components/SelectorEstrellas/SelectorEstrellas.test.tsx`. Prueba que el componente muestre las 5 estrellas, que marque la del valor recibido (props de entrada), que avise la elegida con `onCambiar` (prop de salida) al hacer clic o usar el teclado, y que no deje elegir cuando está deshabilitado.
+- **End-to-end:** `e2e/flujo-publico.spec.ts`. Recorre la app como un visitante sin sesión: inicio, listado de juegos, búsqueda por título, detalle, volver con la búsqueda intacta, y "Recomendame" lleva al login. También prueba la página 404. Usa la API real y no escribe nada en la base.
+
+La primera vez, antes de `npm run test:e2e`, hay que descargar el navegador: `npx playwright install chromium`.
 
 ## Documentación
 

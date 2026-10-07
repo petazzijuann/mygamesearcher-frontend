@@ -17,6 +17,9 @@ La instalación y el uso están en el [README principal](../README.md).
 | Componentes con eventos, estado y props de entrada y salida | Por ejemplo, `MenuNavegacion` (`onNavegar`), `Buscador` (`onBuscar`), `SelectorMultiple` (`onCambiar`), `BotonesBiblioteca` (`onCambio`), `FormularioCalificacion` (`onCalificada`) |
 | Al menos un servicio para la API | `src/services/` (un servicio por recurso, con una instancia común de axios) |
 | Datos de la API tipados, sin `any` | `src/types/` |
+| Login y protección de pantallas según el rol | `src/context/` (sesión), `src/pages/Login`, `src/pages/Registro`, `src/components/RutaProtegida` |
+| 1 test unitario de componente | `src/components/SelectorEstrellas/SelectorEstrellas.test.tsx` (`npm run test`) |
+| 1 test end-to-end | `e2e/flujo-publico.spec.ts` (`npm run test:e2e`, con el backend levantado) |
 
 ## Cómo probar las pantallas con sesión
 
