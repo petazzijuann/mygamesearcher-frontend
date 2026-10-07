@@ -196,3 +196,44 @@
 7. Volver al listado y eliminar la colección con la confirmación.
 8. Ir a `/colecciones/9999`: muestra el error de "no se encontró".
 9. Revisar en 375px (una columna), 640px (listado de a dos) y 1024px (listado de a tres; en el detalle, juegos y buscador lado a lado).
+
+## Paso 6 - Listado de juegos filtrado por nombre + detalle (07/10/2026)
+**Qué se hizo:** pantalla pública "Juegos" con búsqueda en vivo por título y una grilla de tarjetas, y pantalla de detalle de cada juego. Se sumaron tres componentes reutilizables: `Buscador`, `TarjetaJuego` y `ListaEtiquetas`.
+
+**Cómo se hizo:**
+- Rama `feature/listado-juegos` creada desde `dev`.
+- `src/components/Buscador/Buscador.tsx`:
+  - Campo de búsqueda con `<label>`, botón ✕ para limpiar y `role="search"`.
+  - Espera 400 ms después de la última tecla y avisa con `onBuscar(texto)`. Con Enter busca en el momento.
+- `src/components/TarjetaJuego/TarjetaJuego.tsx`:
+  - `<article>` con portada, título, año, clasificación y géneros. El link del título se estira a toda la tarjeta para que se pueda tocar en cualquier parte.
+  - La prop opcional `pie` permite sumar contenido; se va a usar en recomendaciones.
+- `src/components/ListaEtiquetas/ListaEtiquetas.tsx`: muestra listas de nombres como etiquetas, en tamaño chico o normal.
+- `src/pages/Juegos/ListadoJuegos.tsx`:
+  - El filtro se guarda en la URL (`?titulo=`) con `useSearchParams` y se busca con `juegoService.listar(titulo)`.
+  - Grilla de 1, 2, 3 y 4 columnas (base, SM, MD y LG) y contador de resultados.
+  - Mensajes para "sin resultados" y para errores, con "Reintentar".
+- `src/pages/Juegos/DetalleJuego.tsx`:
+  - `GET /juegos/:id`, con portada, título, año, clasificación, descripción, y plataformas, géneros y características en una `<dl>`.
+  - En celular, una columna; desde MD, portada a la izquierda y datos a la derecha.
+- `src/routes/AppRouter.tsx`: rutas `/juegos` y `/juegos/:id`.
+- Menú: link "Juegos". Inicio: botón "Ver juegos".
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Búsqueda en vivo con espera (debounce) de 400 ms:** es lo que se espera de un buscador, y la espera evita pedirle a la API una búsqueda por cada letra. Se descartó buscar solo con un botón.
+- **Respuestas viejas ignoradas:** si una búsqueda vieja llega después de una nueva, se ignora con una bandera `vigente` en el efecto. Así nunca se muestran resultados que no corresponden al texto actual.
+- **Filtro en la URL y no en un estado:** al entrar a un juego y volver, la búsqueda sigue ahí, y el link se puede compartir. Se usa `replace` para no llenar el historial con cada letra.
+- **"Volver" en el detalle:** si se llegó desde el listado, vuelve atrás (con la búsqueda que había); si se entró directo por la URL, va a `/juegos`.
+- **Etiquetas de solo lectura** (`ListaEtiquetas`) para mostrar las listas, distintas del `SelectorMultiple` del ABM, que sirve para elegir.
+
+**Requisito del TP que cubre:** listado de juegos filtrado por nombre y detalle. Eventos (input, submit, click), reactividad ante el estado (resultados, cargando, error, sin resultados), props de entrada y de salida (`onBuscar`), HTML semántico (`article`, `search`, `dl`), errores amigables y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend. No hace falta token, porque estas pantallas son públicas.
+2. En el menú (o en el botón "Ver juegos" del inicio), entrar a "Juegos": se ven todas las tarjetas.
+3. Escribir parte de un título: al dejar de escribir, la lista se filtra y la URL cambia a `?titulo=...`. Con ✕ se limpia.
+4. Buscar algo que no exista: aparece "No encontramos juegos que coincidan con «...»".
+5. Tocar una tarjeta: abre el detalle. "← Volver" regresa al listado con la búsqueda intacta.
+6. Ir a `/juegos/9999`: muestra el error de "no se encontró" y el link "Ver todos los juegos".
+7. Revisar el listado en 375px (1 columna), 640px (2), 768px (3) y 1024px (4), y el detalle en celular (una columna) y desde 768px (dos columnas).

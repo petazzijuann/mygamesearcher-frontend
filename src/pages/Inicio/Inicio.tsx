@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export function Inicio() {
   return (
     <section className="mx-auto max-w-3xl text-center">
@@ -8,6 +10,12 @@ export function Inicio() {
         DGame te recomienda de 1 a 3 videojuegos según los géneros, las características y la
         plataforma que elijas.
       </p>
+      <Link
+        to="/juegos"
+        className="mt-6 inline-block rounded-md bg-indigo-700 px-6 py-3 font-medium text-white hover:bg-indigo-600"
+      >
+        Ver juegos
+      </Link>
 
       <ol className="mt-8 grid gap-4 text-left sm:grid-cols-3">
         <li className="rounded-lg bg-white p-4 shadow">
