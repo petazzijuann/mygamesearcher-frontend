@@ -2,7 +2,10 @@ import { Link, Outlet } from 'react-router-dom'
 import { MenuNavegacion, type ItemMenu } from '../MenuNavegacion/MenuNavegacion.tsx'
 
 // Se agrega un link por cada pantalla a medida que se construye.
-const itemsMenu: ItemMenu[] = [{ ruta: '/', texto: 'Inicio' }]
+const itemsMenu: ItemMenu[] = [
+  { ruta: '/', texto: 'Inicio' },
+  { ruta: '/generos', texto: 'Géneros' },
+]
 
 export function Layout() {
   return (
