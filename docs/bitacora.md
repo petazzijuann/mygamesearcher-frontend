@@ -312,3 +312,49 @@
 5. Marcar un resultado como "Me interesa" y verificarlo en "Mi biblioteca". Marcar uno como "Ya jugado" y volver a generar con los mismos criterios: ese juego ya no aparece.
 6. "Cambiar criterios" vuelve al formulario con lo elegido. Elegir una combinación sin juegos: aparece el aviso amarillo con la sugerencia.
 7. Revisar en 375px (selectores y resultados en una columna), 768px (☰ todavía visible, selectores de a dos) y 1024px (menú horizontal, selectores y resultados de a tres).
+
+## Paso 9 - Listado de recomendaciones filtrado por fecha + detalle (07/10/2026)
+**Qué se hizo:** pantalla "Mis recomendaciones" con el historial de búsquedas, filtro por fecha (desde / hasta) y opción de borrar cada una. Pantalla de detalle de cada búsqueda con los criterios usados, los juegos recomendados y un formulario para calificar cada juego de 1 a 5 estrellas con un comentario.
+
+**Cómo se hizo:**
+- Rama `feature/historial-recomendaciones` creada desde `dev`.
+- `src/types/recomendacion.ts`: se agregó `CalificarRecomendacionDto`, según el openapi.
+- `src/types/busqueda.ts`:
+  - `JuegoResumen`, `RecomendacionResumen` y `BusquedaResumen`: tipos para el historial, armados con `Pick`/`Omit` sobre los del openapi, sin campos nuevos.
+  - `FiltroHistorial` (`desde` y `hasta`).
+- `src/services/recomendacionService.ts`: se agregaron `listar(filtro)`, `obtenerPorId`, `eliminar` y `calificar(busquedaId, juegoId, dto)`.
+- `src/utils/fechas.ts`: se agregaron `formatearFechaHora` (fecha con hora) y `esFechaAAAAMMDD`, que valida las fechas que llegan en la URL.
+- `src/components/SelectorEstrellas/SelectorEstrellas.tsx`:
+  - 5 estrellas que por dentro son radio buttons en un `<fieldset>`: se manejan con las flechas del teclado y el lector de pantalla lee "3 de 5 estrellas".
+  - Devuelve el valor con `onCambiar`.
+- `src/components/FormularioCalificacion/FormularioCalificacion.tsx`:
+  - Estrellas, un comentario opcional (máximo 500, con contador) y el botón "Guardar calificación" (o "Actualizar", si ya estaba calificado).
+  - Muestra la fecha de la última calificación y avisa con `onCalificada`.
+- `src/pages/Recomendaciones/HistorialRecomendaciones.tsx`:
+  - Filtro con dos `<input type="date">` que queda en la URL (`?desde=&hasta=`); se valida que "Desde" no sea posterior a "Hasta".
+  - Tarjetas con fecha y hora, criterios, los juegos recomendados en miniatura (con sus estrellas, si ya se calificaron) y los botones "Ver detalle y calificar" y "Borrar" (con confirmación).
+- `src/pages/Recomendaciones/DetalleRecomendacion.tsx`: fecha, criterios en una `<dl>` con etiquetas, cada juego recomendado (con link a su detalle) con su `FormularioCalificacion`, y el botón "Borrar del historial".
+- `src/pages/Recomendar/Recomendar.tsx`: al pie de los resultados, un link "Ver en mi historial" que lleva al detalle de esa búsqueda.
+- `src/components/MenuNavegacion/MenuNavegacion.tsx`: entre LG y XL los links van un poco más compactos (`lg:px-2 lg:text-sm`) para que los 7 entren en una fila desde 1024px.
+- Menú: link "Mis recomendaciones". Rutas: `/recomendaciones` y `/recomendaciones/:id`.
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Formato de fecha `AAAA-MM-DD`:** el openapi solo dice que `desde` y `hasta` son texto, así que se confirmó en el código del backend (`filtro-historial.dto.ts`). Exige ese formato y toma los días completos en hora argentina (el día "hasta" entra entero). Es justo lo que devuelve un `<input type="date">`, así que no hace falta convertir nada.
+- **Tipos de resumen para el historial:** el backend devuelve en `GET /recomendaciones` solo un resumen de cada juego (`id`, `titulo`, `anioLanzamiento`, `imagenUrl`) y no incluye el usuario, aunque el openapi dice `Busqueda[]` completas. Con los tipos de resumen, TypeScript no deja usar en el listado un dato que no llega (por ejemplo, los géneros del juego). **Pendiente:** corregir el Swagger del backend para que lo documente.
+- **Las estrellas son radio buttons:** son accesibles con teclado y lector de pantalla sin código extra, y se ven como estrellas con CSS.
+- **Al calificar, se actualizan solo la calificación, el comentario y la fecha:** no se vuelve a pedir la búsqueda entera.
+- **"Volver al historial"** vuelve atrás en el navegador si se llegó desde el listado, así se mantiene el filtro de fechas.
+
+**Requisito del TP que cubre:** listado de recomendaciones filtrado por fecha + detalle (CUU Consultar historial: ver, calificar y borrar). Componentes con props de entrada y de salida (`onCambiar`, `onCalificada`), eventos (submit, change, click), reactividad ante el estado (estrellas, "Guardando...", mensajes), servicio para la API, HTML semántico (`article`, `time`, `dl`, `fieldset`), errores amigables y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend. Cargar el token de un usuario en `localStorage` (como en el Paso 2) y generar un par de recomendaciones (Paso 8).
+2. Sin token, "Mis recomendaciones" muestra "Iniciá sesión para ver tu historial de recomendaciones".
+3. Con token, entrar a "Mis recomendaciones": se ven las búsquedas de la más nueva a la más vieja, con fecha y hora, criterios y juegos.
+4. Filtrar con "Desde" y "Hasta" (por ejemplo, el día de hoy en los dos): la URL cambia a `?desde=...&hasta=...`. Poner "Desde" posterior a "Hasta": aparece el error. "Limpiar" vuelve a mostrar todo.
+5. "Ver detalle y calificar": elegir estrellas (también con las flechas del teclado), escribir un comentario y guardar. Aparece "¡Gracias! Se guardó tu calificación." y la fecha. Al volver al historial, se ven las estrellas en ese juego.
+6. Borrar una búsqueda desde el historial o desde el detalle (con confirmación).
+7. Desde los resultados de "Recomendame", el link "Ver en mi historial" abre el detalle de esa búsqueda.
+8. Ir a `/recomendaciones/9999`: muestra el error de "no se encontró".
+9. Revisar en 375px (todo en una columna, filtro apilado), 768px (historial de a dos, filtro en fila) y 1024px (menú horizontal con 7 links, detalle de a dos juegos).

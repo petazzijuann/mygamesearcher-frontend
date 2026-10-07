@@ -15,6 +15,8 @@ import { FormularioJuego } from '../pages/Juegos/FormularioJuego.tsx'
 import { ListadoJuegos } from '../pages/Juegos/ListadoJuegos.tsx'
 import { ListadoJuegosAdmin } from '../pages/Juegos/ListadoJuegosAdmin.tsx'
 import { NoEncontrada } from '../pages/NoEncontrada/NoEncontrada.tsx'
+import { DetalleRecomendacion } from '../pages/Recomendaciones/DetalleRecomendacion.tsx'
+import { HistorialRecomendaciones } from '../pages/Recomendaciones/HistorialRecomendaciones.tsx'
 import { Recomendar } from '../pages/Recomendar/Recomendar.tsx'
 
 // Listado, alta y edición de cada catálogo. La "key" hace que React arranque
@@ -42,6 +44,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Inicio /> },
       { path: 'recomendar', element: <Recomendar /> },
+      { path: 'recomendaciones', element: <HistorialRecomendaciones /> },
+      { path: 'recomendaciones/:id', element: <DetalleRecomendacion /> },
       { path: 'juegos', element: <ListadoJuegos /> },
       { path: 'juegos/:id', element: <DetalleJuego /> },
       { path: 'biblioteca', element: <MiBiblioteca /> },

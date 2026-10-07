@@ -48,7 +48,8 @@ export function MenuNavegacion({ items, onNavegar }: MenuNavegacionProps) {
               end={item.ruta === '/'}
               onClick={() => manejarClick(item)}
               className={({ isActive }) =>
-                `block rounded-md px-3 py-2 font-medium text-white hover:bg-indigo-600 ${isActive ? 'bg-indigo-800' : ''}`
+                // Entre LG y XL los 7 links van un poco más compactos para entrar en una fila.
+                `block rounded-md px-3 py-2 font-medium whitespace-nowrap text-white hover:bg-indigo-600 lg:px-2 lg:text-sm xl:px-3 xl:text-base ${isActive ? 'bg-indigo-800' : ''}`
               }
             >
               {item.texto}
