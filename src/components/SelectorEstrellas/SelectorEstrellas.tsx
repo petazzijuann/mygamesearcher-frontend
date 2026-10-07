@@ -48,9 +48,7 @@ export function SelectorEstrellas({
                 }`}
               >
                 <span aria-hidden="true">★</span>
-                <span className="sr-only">
-                  {estrellas} de 5 {estrellas === 1 ? 'estrella' : 'estrellas'}
-                </span>
+                <span className="sr-only">{estrellas} de 5 estrellas</span>
               </label>
             </div>
           )

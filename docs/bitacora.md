@@ -524,3 +524,48 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 5. Con el ADMIN, `/admin/juegos` se abre normalmente.
 6. Con sesión en "Mis colecciones", tocar "Cerrar sesión": va al inicio. "Atrás" en el navegador lleva al login, no a la pantalla protegida.
 7. Las pantallas públicas (inicio, juegos, detalle de juego) se siguen viendo sin sesión.
+
+## Paso 14 - Test unitario de componente y test end-to-end (07/10/2026)
+**Qué se hizo:** un test unitario del componente `SelectorEstrellas` (5 casos) y un test end-to-end que recorre la app en un navegador real contra la API (2 casos). Se sumaron los scripts `test`, `test:watch` y `test:e2e`.
+
+**Cómo se hizo:**
+- Rama `feature/tests` creada desde `dev`.
+- Dependencias de desarrollo (con el OK del grupo):
+  - `npm install -D vitest @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom @playwright/test`.
+  - `npx playwright install chromium`, para descargar el navegador de los tests end-to-end.
+- `vite.config.ts`: sección `test` de Vitest, con entorno `jsdom`, el archivo de preparación y solo los archivos `src/**/*.test.tsx`.
+- `src/test/setup.ts`: carga las comparaciones de `jest-dom` (`toBeChecked`, `toBeDisabled`...) y limpia la pantalla después de cada test.
+- `src/components/SelectorEstrellas/SelectorEstrellas.test.tsx`:
+  1. Muestra la leyenda y 5 estrellas sin marcar.
+  2. Al hacer clic en la tercera, llama a `onCambiar(3)`.
+  3. Marca la estrella del `valor` recibido y se actualiza si el valor cambia.
+  4. Con la flecha derecha del teclado pasa a la estrella siguiente.
+  5. Deshabilitado no deja elegir y muestra el mensaje de error.
+- `src/components/SelectorEstrellas/SelectorEstrellas.tsx`: el test encontró un error. La primera estrella se anunciaba como "1 de 5 estrella", y ahora dice "1 de 5 estrellas", como las demás.
+- `playwright.config.ts`: Chromium, los tests en `e2e/`, y el frontend se levanta solo en el puerto 5180 (o se reutiliza si ya está corriendo).
+- `e2e/flujo-publico.spec.ts`:
+  1. Visitante sin sesión: inicio → "Ver juegos" → buscar "zelda" (la URL cambia a `?titulo=zelda` y aparecen resultados) → abrir el primero (el título del detalle coincide) → aparece "Iniciá sesión" → "Volver" regresa con la búsqueda → "Recomendame" lleva al login.
+  2. Una ruta inexistente muestra la página 404, y "Volver al inicio" funciona.
+- `package.json`: scripts `test` (`vitest run`), `test:watch` (`vitest`) y `test:e2e` (`playwright test`).
+- `.gitignore`: `test-results/`, `playwright-report/` y `blob-report/`.
+- README (scripts y sección "Tests") y `docs/README.md` (tabla de requisitos).
+- Resultados:
+  - `npm run test`: 5 de 5 pasan.
+  - `npm run test:e2e` con el backend levantado: 2 de 2 pasan.
+  - Con el backend apagado, el flujo falla en la búsqueda, y en el navegador se ve "No se pudo conectar con el servidor" con "Reintentar", que es el comportamiento esperado de la app.
+  - `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Vitest y no Jest:** usa la misma configuración de Vite (TypeScript, JSX y alias), así que no hace falta Babel ni otra configuración.
+- **Testing Library:** prueba el componente como lo usa una persona (busca por rol y por nombre accesible, hace clic, usa el teclado) y no detalles internos. De paso verifica la accesibilidad, y por eso detectó el texto mal escrito.
+- **`SelectorEstrellas` como componente a testear:** muestra en un solo componente props de entrada, prop de salida, eventos y reactividad, que es lo que pide la cátedra, y no depende de la API.
+- **Playwright para el end-to-end:** maneja un navegador real, espera solo a que aparezcan los elementos y funciona bien en Windows. Se descartó Cypress, que es más pesado.
+- **El end-to-end usa el backend real y no escribe en la base:** prueba la integración de punta a punta (proxy de Vite + API) sin ensuciar la base compartida del grupo.
+
+**Requisito del TP que cubre:** 1 test unitario de componente y 1 test end-to-end (requisitos de aprobación).
+
+**Cómo probarlo:**
+1. `npm install` (si no se hizo después de bajar estos cambios).
+2. `npm run test`: tienen que pasar los 5 casos de `SelectorEstrellas`.
+3. Levantar el backend. La primera vez, correr `npx playwright install chromium`.
+4. `npm run test:e2e`: tienen que pasar los 2 casos. Si falla algo, en `test-results/` queda un registro (`npx playwright show-trace ...`) para ver paso a paso qué pasó.
