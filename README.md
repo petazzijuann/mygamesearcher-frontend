@@ -45,20 +45,19 @@ El frontend le pide todo a `/api/...` y el **proxy de Vite** lo reenvía a la AP
 
 Todas las llamadas pasan por una instancia común de axios (`src/services/api.ts`), que agrega el token JWT si hay una sesión guardada y convierte los errores de la API en mensajes en español.
 
-### Sesión (hasta que exista la pantalla de login)
+### Sesión
 
-Las pantallas personales y las de administración necesitan un token. Para probarlas:
+Desde "Ingresar" (arriba a la derecha) se inicia sesión, y desde "Creá una" se crea una cuenta nueva (con rol USUARIO). La sesión (token JWT y datos del usuario) se guarda en el navegador y se comparte en toda la app con un contexto de React (`src/context/`). Si el token vence, la app avisa y pide ingresar de nuevo.
 
-1. Hacer login en el Swagger del backend (`http://localhost:3000/api`, `POST /auth/login`) y copiar el `token`.
-2. En la consola del navegador (F12): `localStorage.setItem('token', 'PEGAR_TOKEN')`.
-
-Para crear, editar o eliminar datos de Administración, el usuario tiene que ser ADMIN.
+El primer administrador lo crea el backend al arrancar, con los datos `ADMIN_EMAIL` y `ADMIN_CONTRASENA` de su `.env`. Solo un ADMIN ve "Administración" y puede crear, editar o eliminar sus datos.
 
 ## Pantallas
 
 | Ruta | Pantalla | Sesión |
 |---|---|---|
 | `/` | Inicio | No |
+| `/login` | Ingresar | No |
+| `/registro` | Crear cuenta | No |
 | `/juegos` | Listado de juegos con búsqueda por título | No |
 | `/juegos/:id` | Detalle de un juego y botones de biblioteca | No (los botones, sí) |
 | `/recomendar` | Generar una recomendación personalizada | Sí |
@@ -73,6 +72,7 @@ Para crear, editar o eliminar datos de Administración, el usuario tiene que ser
 ```
 src/
   components/  -> componentes reutilizables (Buscador, TarjetaJuego, SelectorMultiple, ...)
+  context/     -> sesión compartida (SesionProvider y el hook useSesion)
   pages/       -> una carpeta por pantalla
   routes/      -> definición de rutas (AppRouter.tsx)
   services/    -> un servicio por recurso; todos usan la instancia común de axios (api.ts)
@@ -88,6 +88,16 @@ src/
 | `npm run build` | Verifica los tipos y genera la versión de producción en `dist/` |
 | `npm run lint` | Revisa el código con oxlint |
 | `npm run preview` | Sirve la versión de producción generada |
+| `npm run test` | Corre los tests unitarios de componentes (Vitest + Testing Library) |
+| `npm run test:watch` | Igual que `test`, pero los vuelve a correr al guardar cambios |
+| `npm run test:e2e` | Corre los tests end-to-end en un navegador (Playwright). Necesita el backend levantado |
+
+### Tests
+
+- **Unitario de componente:** `src/components/SelectorEstrellas/SelectorEstrellas.test.tsx`. Prueba que el componente muestre las 5 estrellas, que marque la del valor recibido (props de entrada), que avise la elegida con `onCambiar` (prop de salida) al hacer clic o usar el teclado, y que no deje elegir cuando está deshabilitado.
+- **End-to-end:** `e2e/flujo-publico.spec.ts`. Recorre la app como un visitante sin sesión: inicio, listado de juegos, búsqueda por título, detalle, volver con la búsqueda intacta, y "Recomendame" lleva al login. También prueba la página 404. Usa la API real y no escribe nada en la base.
+
+La primera vez, antes de `npm run test:e2e`, hay que descargar el navegador: `npx playwright install chromium`.
 
 ## Documentación
 

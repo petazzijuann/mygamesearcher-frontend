@@ -1,9 +1,14 @@
 import axios from 'axios'
 import type { ErrorRespuesta } from '../types/errorRespuesta.ts'
 
-// Clave donde se guarda el token JWT en el navegador.
-// Por ahora se carga a mano; cuando exista la pantalla de login, la va a guardar ella.
+// Claves donde se guarda la sesión en el navegador (las escribe SesionProvider).
 export const CLAVE_TOKEN = 'token'
+export const CLAVE_USUARIO = 'usuario'
+
+export const RUTA_LOGIN = '/auth/login'
+
+// Evento que avisa a la app que la API rechazó el token (venció o no es válido).
+export const EVENTO_SESION_VENCIDA = 'sesion-vencida'
 
 // Instancia común de axios: todos los servicios (generoService, juegoService, ...) la usan.
 export const api = axios.create({
@@ -19,18 +24,28 @@ function leerToken(): string | null {
   }
 }
 
-/** Indica si hay un token guardado (no verifica que siga vigente: eso lo dice la API con un 401) */
-export function haySesion(): boolean {
-  return leerToken() !== null
-}
-
-// Si hay un token guardado, se manda en cada pedido (lo piden las acciones de ADMIN).
+// Si hay un token guardado, se manda en cada pedido.
 api.interceptors.request.use((config) => {
   const token = leerToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
+})
+
+// Si la API responde 401 a un pedido que llevaba token, la sesión ya no sirve:
+// se avisa con un evento y SesionProvider la cierra. El 401 del login no cuenta
+// (ahí significa email o contraseña incorrectos).
+api.interceptors.response.use(undefined, (error: unknown) => {
+  if (
+    axios.isAxiosError(error) &&
+    error.response?.status === 401 &&
+    error.config?.url !== RUTA_LOGIN &&
+    error.config?.headers.Authorization
+  ) {
+    window.dispatchEvent(new Event(EVENTO_SESION_VENCIDA))
+  }
+  return Promise.reject(error)
 })
 
 function esErrorRespuesta(datos: unknown): datos is ErrorRespuesta {
@@ -52,7 +67,8 @@ export function obtenerMensajeError(error: unknown): string {
   if (!error.response || status === 502 || status === 503 || status === 504) {
     return 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'
   }
-  if (status === 401) {
+  // En el login, el 401 trae el mensaje del backend (email o contraseña incorrectos).
+  if (status === 401 && error.config?.url !== RUTA_LOGIN) {
     return 'Necesitás iniciar sesión para hacer esto.'
   }
   if (status === 403) {

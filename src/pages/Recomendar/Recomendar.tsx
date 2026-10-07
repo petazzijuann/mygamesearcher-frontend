@@ -6,7 +6,7 @@ import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { SelectorMultiple } from '../../components/SelectorMultiple/SelectorMultiple.tsx'
 import { TarjetaJuego } from '../../components/TarjetaJuego/TarjetaJuego.tsx'
-import { haySesion, obtenerMensajeError } from '../../services/api.ts'
+import { obtenerMensajeError } from '../../services/api.ts'
 import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import { caracteristicaService } from '../../services/caracteristicaService.ts'
 import { generoService } from '../../services/generoService.ts'
@@ -44,10 +44,8 @@ function validar(criterios: Criterios): ErroresCriterios {
 
 // CUU Generar recomendación: el usuario elige criterios y la API devuelve de 1 a 3 juegos.
 export function Recomendar() {
-  const sesion = haySesion()
-
   const [opciones, setOpciones] = useState<Opciones | null>(null)
-  const [cargandoOpciones, setCargandoOpciones] = useState(sesion)
+  const [cargandoOpciones, setCargandoOpciones] = useState(true)
   const [errorOpciones, setErrorOpciones] = useState<string | null>(null)
   /** Se incrementa con "Reintentar" para volver a disparar la carga */
   const [intento, setIntento] = useState(0)
@@ -68,7 +66,6 @@ export function Recomendar() {
   const tituloResultadosRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    if (!sesion) return
     let vigente = true
     setCargandoOpciones(true)
     setErrorOpciones(null)
@@ -85,7 +82,7 @@ export function Recomendar() {
     return () => {
       vigente = false
     }
-  }, [sesion, intento])
+  }, [intento])
 
   // Al mostrar los resultados, se lleva la vista y el foco al título (lo anuncia el lector de pantalla).
   useEffect(() => {
@@ -154,19 +151,13 @@ export function Recomendar() {
         </p>
       </header>
 
-      {!sesion && (
-        <p className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
-          Iniciá sesión para recibir recomendaciones personalizadas.
-        </p>
-      )}
+      {cargandoOpciones && <Cargando texto="Cargando opciones..." />}
 
-      {sesion && cargandoOpciones && <Cargando texto="Cargando opciones..." />}
-
-      {sesion && !cargandoOpciones && errorOpciones && (
+      {!cargandoOpciones && errorOpciones && (
         <MensajeError mensaje={errorOpciones} onReintentar={() => setIntento((n) => n + 1)} />
       )}
 
-      {sesion && opciones && !busqueda && (
+      {opciones && !busqueda && (
         <form
           onSubmit={(evento) => void generar(evento)}
           noValidate

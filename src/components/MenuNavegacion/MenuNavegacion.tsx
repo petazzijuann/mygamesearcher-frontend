@@ -11,9 +11,11 @@ interface MenuNavegacionProps {
   items: ItemMenu[]
   /** Se llama cuando el usuario elige una opción (prop de salida) */
   onNavegar?: (item: ItemMenu) => void
+  /** Clases extra para ubicar el menú dentro del encabezado */
+  className?: string
 }
 
-export function MenuNavegacion({ items, onNavegar }: MenuNavegacionProps) {
+export function MenuNavegacion({ items, onNavegar, className = '' }: MenuNavegacionProps) {
   const [abierto, setAbierto] = useState(false)
 
   function manejarClick(item: ItemMenu) {
@@ -22,7 +24,7 @@ export function MenuNavegacion({ items, onNavegar }: MenuNavegacionProps) {
   }
 
   return (
-    <nav aria-label="Navegación principal" className="relative">
+    <nav aria-label="Navegación principal" className={`relative ${className}`}>
       {/* Botón hamburguesa: en celulares y tablets (los links no entran en una fila hasta LG) */}
       <button
         type="button"

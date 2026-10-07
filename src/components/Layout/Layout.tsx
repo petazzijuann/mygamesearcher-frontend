@@ -1,26 +1,64 @@
-import { Link, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useSesion } from '../../context/sesion.ts'
+import { AreaSesion } from '../AreaSesion/AreaSesion.tsx'
 import { MenuNavegacion, type ItemMenu } from '../MenuNavegacion/MenuNavegacion.tsx'
 
-// Se agrega un link por cada pantalla a medida que se construye.
-const itemsMenu: ItemMenu[] = [
+interface ItemMenuConPermiso extends ItemMenu {
+  /** 'sesion': solo con sesión iniciada; 'admin': solo para ADMIN */
+  requiere?: 'sesion' | 'admin'
+}
+
+const itemsMenu: ItemMenuConPermiso[] = [
   { ruta: '/', texto: 'Inicio' },
-  { ruta: '/recomendar', texto: 'Recomendame' },
-  { ruta: '/recomendaciones', texto: 'Mis recomendaciones' },
   { ruta: '/juegos', texto: 'Juegos' },
-  { ruta: '/biblioteca', texto: 'Mi biblioteca' },
-  { ruta: '/colecciones', texto: 'Mis colecciones' },
-  { ruta: '/admin', texto: 'Administración' },
+  { ruta: '/recomendar', texto: 'Recomendame' },
+  { ruta: '/recomendaciones', texto: 'Mis recomendaciones', requiere: 'sesion' },
+  { ruta: '/biblioteca', texto: 'Mi biblioteca', requiere: 'sesion' },
+  { ruta: '/colecciones', texto: 'Mis colecciones', requiere: 'sesion' },
+  { ruta: '/admin', texto: 'Administración', requiere: 'admin' },
 ]
 
 export function Layout() {
+  const { usuario, esAdmin, vencida, olvidarVencimiento } = useSesion()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Si la API rechazó el token, se manda al login con el aviso y la pantalla para volver.
+  useEffect(() => {
+    if (!vencida) return
+    olvidarVencimiento()
+    // replace: si RutaProtegida ya mandó al login, se reemplaza esa entrada (sin duplicar el historial).
+    navigate('/login', {
+      replace: true,
+      state: { desde: `${location.pathname}${location.search}`, vencida: true },
+    })
+  }, [vencida, olvidarVencimiento, navigate, location.pathname, location.search])
+
+  const itemsVisibles = itemsMenu.filter(
+    (item) =>
+      item.requiere === undefined ||
+      (item.requiere === 'sesion' && usuario !== null) ||
+      (item.requiere === 'admin' && esAdmin),
+  )
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="bg-indigo-700 shadow">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 lg:px-8">
+        {/* En celular y tablet: logo, sesión y ☰ en una fila.
+            Desde LG el menú baja a una segunda fila para que entren todos los links. */}
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 lg:px-8">
           <Link to="/" className="text-xl font-bold text-white sm:text-2xl">
             MyGameSearcher
           </Link>
-          <MenuNavegacion items={itemsMenu} onNavegar={() => window.scrollTo(0, 0)} />
+          <div className="ml-auto lg:order-2">
+            <AreaSesion />
+          </div>
+          <MenuNavegacion
+            items={itemsVisibles}
+            onNavegar={() => window.scrollTo(0, 0)}
+            className="lg:order-3 lg:w-full lg:border-t lg:border-indigo-600 lg:pt-2"
+          />
         </div>
       </header>
 

@@ -426,3 +426,146 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 1. Abrir el repo en GitHub: el README muestra la descripción, la instalación y las pantallas.
 2. Seguir los pasos de "Instalación y uso" desde cero: la app levanta y carga los juegos desde la API.
 3. En la app, el encabezado, el pie, el inicio y la pestaña del navegador dicen "MyGameSearcher".
+
+## Paso 12 - Login, registro y sesión (07/10/2026)
+**Qué se hizo:** pantallas para ingresar y crear una cuenta, y una sesión compartida en toda la app. El encabezado muestra "Ingresar" o el saludo con "Cerrar sesión", y el menú muestra solo los links que corresponden a la sesión y al rol. Si el token vence, la app avisa y manda al login.
+
+**Cómo se hizo:**
+- Rama `feature/login` creada desde `dev`.
+- Tipos, según el openapi:
+  - `src/types/auth.ts`: `LoginDto`, `UsuarioLogin` y `RespuestaLoginDto`.
+  - `src/types/usuario.ts`: `CrearUsuarioDto`.
+- Servicios: `authService.login()` (`POST /auth/login`) y `usuarioService.registrar()` (`POST /usuarios`).
+- `src/context/sesion.ts` y `src/context/SesionProvider.tsx` (carpeta nueva):
+  - Contexto de React con `usuario`, `esAdmin`, `iniciarSesion()` y `cerrarSesion()`. Guarda el token (clave `token`, la misma de antes) y el usuario (clave `usuario`) en `localStorage`.
+  - Valida lo guardado al arrancar: si falta algo o está roto, arranca sin sesión.
+  - Se sincroniza si se entra o se sale en otra pestaña.
+  - `useSesion()` lo lee desde cualquier componente.
+- `src/main.tsx`: la app queda envuelta en `<SesionProvider>`.
+- `src/services/api.ts`:
+  - Un interceptor de respuesta avisa con el evento `sesion-vencida` cuando la API responde 401 a un pedido que llevaba token. El 401 del login queda afuera, porque ahí significa "email o contraseña incorrectos".
+  - `obtenerMensajeError` deja pasar el mensaje del backend en ese caso.
+  - Se quitó `haySesion()`; ahora se usa `useSesion()`.
+- `src/pages/Login/Login.tsx`:
+  - Email y contraseña con validación y el error de la API.
+  - Muestra "Tu sesión venció" si se llegó por vencimiento.
+  - Al ingresar, vuelve a la pantalla de origen (`state.desde`, validado en `src/utils/destinoNavegacion.ts`).
+- `src/pages/Registro/Registro.tsx`:
+  - Nombre, apellido, email, contraseña con confirmación (8 a 72) y plataforma favorita opcional.
+  - Al crear la cuenta, inicia sesión solo.
+- `src/components/AreaSesion/AreaSesion.tsx`: "Ingresar", o "Hola, Nombre" (con la etiqueta ADMIN si corresponde) y "Cerrar sesión".
+- `src/components/AvisoIniciarSesion/AvisoIniciarSesion.tsx`: aviso con link al login que vuelve a la pantalla actual. Se usa en el detalle del juego, en Recomendame y en Mis recomendaciones, en lugar de los textos sueltos.
+- `src/components/Layout/Layout.tsx`:
+  - Menú filtrado: "Mis recomendaciones", "Mi biblioteca" y "Mis colecciones" solo con sesión; "Administración" solo para ADMIN.
+  - Al vencer la sesión, navega al login.
+  - Desde LG, el menú va en una segunda fila del encabezado.
+- `src/components/MenuNavegacion/MenuNavegacion.tsx`: nueva prop `className`.
+- Rutas `/login` y `/registro`. README y `docs/README.md`: se reemplazaron las instrucciones de cargar el token a mano.
+- Verificado:
+  - `npm run build` y `npm run lint` sin errores.
+  - Contra la API real (a través del proxy), con un usuario de prueba que se borró al final:
+    - Login incorrecto → 401 "Email o contraseña incorrectos".
+    - Registro con contraseña corta → 400. Registro → 201 con rol USUARIO. Email repetido → 409.
+    - Login → 200, y el `usuario` trae exactamente los campos de `UsuarioLogin`.
+    - Token inválido → 401. USUARIO creando un género → 403.
+
+**Por qué:**
+- **Contexto de React para la sesión:** varias partes (encabezado, menú, pantallas) necesitan saber si hay sesión y de quién, y se tienen que actualizar solas al entrar o salir. `haySesion()` solo leía `localStorage` al dibujar y no se enteraba de los cambios. No hizo falta instalar nada.
+- **El hook en un archivo aparte** (`sesion.ts`) del componente (`SesionProvider.tsx`), para cumplir la regla de oxlint que pide que los archivos de componentes exporten solo componentes.
+- **Sesión vencida por evento:** el interceptor de axios no tiene acceso a React. Con un evento del navegador queda desacoplado: `api.ts` avisa y `SesionProvider` decide.
+- **Iniciar sesión después de registrarse:** el registro devuelve el usuario pero no el token; se hace el login con los mismos datos para no pedirlos dos veces.
+- **Menú en dos filas desde LG:** con el saludo y "Cerrar sesión", los links ya no entraban en una sola fila. En celular y tablet sigue el botón ☰.
+- **La protección de las rutas** (que alguien sin sesión o sin rol no pueda entrar escribiendo la URL) queda para el Paso 13.
+
+**Requisito del TP que cubre:** login (requisito de aprobación). Componentes con props de entrada y de salida, eventos, reactividad ante el estado (la sesión cambia el encabezado y el menú), servicios para la API, datos tipados, errores amigables y diseño responsive.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend.
+2. Sin sesión: el menú muestra Inicio, Juegos y Recomendame, y arriba a la derecha aparece "Ingresar".
+3. "Ingresar" con datos incorrectos: aparece "Email o contraseña incorrectos".
+4. "Creá una": completar el formulario (probar contraseñas que no coinciden). Al crear la cuenta, entra solo y vuelve a donde estaba. El menú suma Mis recomendaciones, Mi biblioteca y Mis colecciones; arriba dice "Hola, Nombre".
+5. Cerrar sesión e ingresar con el ADMIN del `.env` del backend: aparece la etiqueta ADMIN y el link "Administración".
+6. En el detalle de un juego sin sesión, "Iniciá sesión" lleva al login y, al ingresar, vuelve al mismo juego.
+7. Sesión vencida: con sesión iniciada, en la consola (F12) correr `localStorage.setItem('token', 'x')` y entrar a "Mi biblioteca". La app manda al login con "Tu sesión venció".
+8. Revisar en 375px (logo, "Ingresar" y ☰ en una fila), 768px y 1024px (menú en una segunda fila).
+
+## Paso 13 - Protección de pantallas según el rol (07/10/2026)
+**Qué se hizo:** las pantallas personales solo se pueden abrir con sesión iniciada, y las de Administración solo con rol ADMIN, aunque se escriba la URL a mano. Sin sesión, la app manda al login y después vuelve a la pantalla pedida. Con sesión pero sin rol ADMIN, muestra una pantalla amigable de "No tenés permiso".
+
+**Cómo se hizo:**
+- Rama `feature/proteccion-rutas` creada desde `dev`.
+- `src/components/RutaProtegida/RutaProtegida.tsx`:
+  - Ruta "layout" de react-router que recibe `requiere: 'sesion' | 'admin'`.
+  - Sin sesión: `<Navigate to="/login">` con `state.desde`, para volver después.
+  - Sin rol ADMIN donde hace falta: muestra `SinPermiso`. Si todo está bien: `<Outlet />`.
+- `src/pages/SinPermiso/SinPermiso.tsx`: "No tenés permiso para ver esta página", con link al inicio.
+- `src/routes/AppRouter.tsx`: las rutas quedaron en tres grupos.
+  - **Públicas:** inicio, login, registro, juegos y detalle de juego.
+  - **Con sesión:** recomendar, historial y detalle de recomendaciones, biblioteca y colecciones.
+  - **Solo ADMIN:** `/admin`, los ABM de catálogos y el de juegos.
+- `src/pages/Recomendar/Recomendar.tsx` y `src/pages/Recomendaciones/HistorialRecomendaciones.tsx`: se sacaron el chequeo de sesión y el aviso "Iniciá sesión", porque la ruta ya lo garantiza. En el detalle de un juego el aviso queda, porque esa pantalla es pública.
+- `src/components/Layout/Layout.tsx`: al vencer la sesión navega al login con `replace`, para no dejar una entrada de más en el historial (puede coincidir con la redirección de `RutaProtegida`).
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Esconder los links no alcanza:** cualquiera puede escribir `/admin` en la barra de direcciones. Antes, la pantalla se abría y recién la API respondía 401 o 403. Ahora el frontend no la muestra.
+- **Ruta "layout" en vez de proteger pantalla por pantalla:** una sola regla por grupo en `AppRouter`, así sumar una pantalla protegida es ponerla en el grupo correcto. Se descartó repetir el chequeo dentro de cada página.
+- **Pantalla "Sin permiso" en lugar de redirigir:** si un USUARIO entra a `/admin`, mandarlo al login no tiene sentido (ya inició sesión). Se le explica qué pasa.
+- **"Recomendame" sigue en el menú sin sesión:** es la función principal; al tocarla lleva a ingresar y después vuelve.
+- **La seguridad real la sigue haciendo el backend** (401 y 403): la protección del frontend es para que la interfaz no muestre pantallas que no se pueden usar.
+
+**Requisito del TP que cubre:** protección de pantallas según el rol (requisito de aprobación). Errores amigables (pantalla "Sin permiso") e interfaz usable sin manual (vuelve sola a la pantalla pedida después de ingresar).
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend.
+2. Sin sesión, escribir `http://localhost:5173/biblioteca`: lleva al login. Al ingresar, vuelve a "Mi biblioteca".
+3. Sin sesión, tocar "Recomendame" en el menú: lleva al login y, al ingresar, abre Recomendame.
+4. Con un usuario USUARIO (creado en "Crear cuenta"), escribir `http://localhost:5173/admin/juegos`: aparece "No tenés permiso para ver esta página".
+5. Con el ADMIN, `/admin/juegos` se abre normalmente.
+6. Con sesión en "Mis colecciones", tocar "Cerrar sesión": va al inicio. "Atrás" en el navegador lleva al login, no a la pantalla protegida.
+7. Las pantallas públicas (inicio, juegos, detalle de juego) se siguen viendo sin sesión.
+
+## Paso 14 - Test unitario de componente y test end-to-end (07/10/2026)
+**Qué se hizo:** un test unitario del componente `SelectorEstrellas` (5 casos) y un test end-to-end que recorre la app en un navegador real contra la API (2 casos). Se sumaron los scripts `test`, `test:watch` y `test:e2e`.
+
+**Cómo se hizo:**
+- Rama `feature/tests` creada desde `dev`.
+- Dependencias de desarrollo (con el OK del grupo):
+  - `npm install -D vitest @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom @playwright/test`.
+  - `npx playwright install chromium`, para descargar el navegador de los tests end-to-end.
+- `vite.config.ts`: sección `test` de Vitest, con entorno `jsdom`, el archivo de preparación y solo los archivos `src/**/*.test.tsx`.
+- `src/test/setup.ts`: carga las comparaciones de `jest-dom` (`toBeChecked`, `toBeDisabled`...) y limpia la pantalla después de cada test.
+- `src/components/SelectorEstrellas/SelectorEstrellas.test.tsx`:
+  1. Muestra la leyenda y 5 estrellas sin marcar.
+  2. Al hacer clic en la tercera, llama a `onCambiar(3)`.
+  3. Marca la estrella del `valor` recibido y se actualiza si el valor cambia.
+  4. Con la flecha derecha del teclado pasa a la estrella siguiente.
+  5. Deshabilitado no deja elegir y muestra el mensaje de error.
+- `src/components/SelectorEstrellas/SelectorEstrellas.tsx`: el test encontró un error. La primera estrella se anunciaba como "1 de 5 estrella", y ahora dice "1 de 5 estrellas", como las demás.
+- `playwright.config.ts`: Chromium, los tests en `e2e/`, y el frontend se levanta solo en el puerto 5180 (o se reutiliza si ya está corriendo).
+- `e2e/flujo-publico.spec.ts`:
+  1. Visitante sin sesión: inicio → "Ver juegos" → buscar "zelda" (la URL cambia a `?titulo=zelda` y aparecen resultados) → abrir el primero (el título del detalle coincide) → aparece "Iniciá sesión" → "Volver" regresa con la búsqueda → "Recomendame" lleva al login.
+  2. Una ruta inexistente muestra la página 404, y "Volver al inicio" funciona.
+- `package.json`: scripts `test` (`vitest run`), `test:watch` (`vitest`) y `test:e2e` (`playwright test`).
+- `.gitignore`: `test-results/`, `playwright-report/` y `blob-report/`.
+- README (scripts y sección "Tests") y `docs/README.md` (tabla de requisitos).
+- Resultados:
+  - `npm run test`: 5 de 5 pasan.
+  - `npm run test:e2e` con el backend levantado: 2 de 2 pasan.
+  - Con el backend apagado, el flujo falla en la búsqueda, y en el navegador se ve "No se pudo conectar con el servidor" con "Reintentar", que es el comportamiento esperado de la app.
+  - `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Vitest y no Jest:** usa la misma configuración de Vite (TypeScript, JSX y alias), así que no hace falta Babel ni otra configuración.
+- **Testing Library:** prueba el componente como lo usa una persona (busca por rol y por nombre accesible, hace clic, usa el teclado) y no detalles internos. De paso verifica la accesibilidad, y por eso detectó el texto mal escrito.
+- **`SelectorEstrellas` como componente a testear:** muestra en un solo componente props de entrada, prop de salida, eventos y reactividad, que es lo que pide la cátedra, y no depende de la API.
+- **Playwright para el end-to-end:** maneja un navegador real, espera solo a que aparezcan los elementos y funciona bien en Windows. Se descartó Cypress, que es más pesado.
+- **El end-to-end usa el backend real y no escribe en la base:** prueba la integración de punta a punta (proxy de Vite + API) sin ensuciar la base compartida del grupo.
+
+**Requisito del TP que cubre:** 1 test unitario de componente y 1 test end-to-end (requisitos de aprobación).
+
+**Cómo probarlo:**
+1. `npm install` (si no se hizo después de bajar estos cambios).
+2. `npm run test`: tienen que pasar los 5 casos de `SelectorEstrellas`.
+3. Levantar el backend. La primera vez, correr `npx playwright install chromium`.
+4. `npm run test:e2e`: tienen que pasar los 2 casos. Si falla algo, en `test-results/` queda un registro (`npx playwright show-trace ...`) para ver paso a paso qué pasó.

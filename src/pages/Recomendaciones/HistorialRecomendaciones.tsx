@@ -5,7 +5,7 @@ import { DialogoConfirmacion } from '../../components/DialogoConfirmacion/Dialog
 import { ImagenJuego } from '../../components/ImagenJuego/ImagenJuego.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { MensajeExito } from '../../components/MensajeExito/MensajeExito.tsx'
-import { haySesion, obtenerMensajeError } from '../../services/api.ts'
+import { obtenerMensajeError } from '../../services/api.ts'
 import { recomendacionService } from '../../services/recomendacionService.ts'
 import type { BusquedaResumen } from '../../types/busqueda.ts'
 import { esFechaAAAAMMDD, formatearFecha, formatearFechaHora } from '../../utils/fechas.ts'
@@ -22,7 +22,6 @@ function resumirCriterios(busqueda: BusquedaResumen): string {
 // Historial de recomendaciones del usuario, con filtro por fecha (desde / hasta).
 // El filtro vive en la URL (?desde=AAAA-MM-DD&hasta=AAAA-MM-DD).
 export function HistorialRecomendaciones() {
-  const sesion = haySesion()
   const location = useLocation()
   const navigate = useNavigate()
   const [parametros, setParametros] = useSearchParams()
@@ -37,7 +36,7 @@ export function HistorialRecomendaciones() {
   const [errorFiltro, setErrorFiltro] = useState<string | null>(null)
 
   const [busquedas, setBusquedas] = useState<BusquedaResumen[]>([])
-  const [cargando, setCargando] = useState(sesion)
+  const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   /** Se incrementa con "Reintentar" para volver a disparar la carga */
   const [intento, setIntento] = useState(0)
@@ -50,7 +49,6 @@ export function HistorialRecomendaciones() {
   const [borrando, setBorrando] = useState(false)
 
   useEffect(() => {
-    if (!sesion) return
     let vigente = true
     setCargando(true)
     setError(null)
@@ -68,7 +66,7 @@ export function HistorialRecomendaciones() {
     return () => {
       vigente = false
     }
-  }, [sesion, desde, hasta, intento])
+  }, [desde, hasta, intento])
 
   // Limpia el mensaje del historial del navegador para que no vuelva a aparecer al recargar.
   useEffect(() => {
@@ -137,81 +135,73 @@ export function HistorialRecomendaciones() {
         </Link>
       </header>
 
-      {!sesion && (
-        <p className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
-          Iniciá sesión para ver tu historial de recomendaciones.
-        </p>
-      )}
-
-      {sesion && (
-        <form
-          onSubmit={aplicarFiltro}
-          noValidate
-          aria-label="Filtrar por fecha"
-          className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow sm:flex-row sm:flex-wrap sm:items-end"
-        >
-          <div className="flex flex-col gap-1">
-            <label htmlFor="desde" className="text-sm font-medium text-slate-800">
-              Desde
-            </label>
-            <input
-              id="desde"
-              type="date"
-              value={desdeElegido}
-              max={hastaElegido || undefined}
-              onChange={(evento) => setDesdeElegido(evento.target.value)}
-              className="rounded-md border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="hasta" className="text-sm font-medium text-slate-800">
-              Hasta
-            </label>
-            <input
-              id="hasta"
-              type="date"
-              value={hastaElegido}
-              min={desdeElegido || undefined}
-              onChange={(evento) => setHastaElegido(evento.target.value)}
-              className="rounded-md border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="flex-1 rounded-md bg-indigo-700 px-4 py-2 font-medium text-white hover:bg-indigo-600 sm:flex-none"
-            >
-              Filtrar
-            </button>
-            <button
-              type="button"
-              onClick={limpiarFiltro}
-              disabled={!hayFiltro && !desdeElegido && !hastaElegido}
-              className="flex-1 rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50 sm:flex-none"
-            >
-              Limpiar
-            </button>
-          </div>
-          {errorFiltro && (
-            <p role="alert" className="text-sm text-red-700 sm:basis-full">
-              {errorFiltro}
-            </p>
-          )}
-        </form>
-      )}
+      <form
+        onSubmit={aplicarFiltro}
+        noValidate
+        aria-label="Filtrar por fecha"
+        className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow sm:flex-row sm:flex-wrap sm:items-end"
+      >
+        <div className="flex flex-col gap-1">
+          <label htmlFor="desde" className="text-sm font-medium text-slate-800">
+            Desde
+          </label>
+          <input
+            id="desde"
+            type="date"
+            value={desdeElegido}
+            max={hastaElegido || undefined}
+            onChange={(evento) => setDesdeElegido(evento.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="hasta" className="text-sm font-medium text-slate-800">
+            Hasta
+          </label>
+          <input
+            id="hasta"
+            type="date"
+            value={hastaElegido}
+            min={desdeElegido || undefined}
+            onChange={(evento) => setHastaElegido(evento.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="flex-1 rounded-md bg-indigo-700 px-4 py-2 font-medium text-white hover:bg-indigo-600 sm:flex-none"
+          >
+            Filtrar
+          </button>
+          <button
+            type="button"
+            onClick={limpiarFiltro}
+            disabled={!hayFiltro && !desdeElegido && !hastaElegido}
+            className="flex-1 rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50 sm:flex-none"
+          >
+            Limpiar
+          </button>
+        </div>
+        {errorFiltro && (
+          <p role="alert" className="text-sm text-red-700 sm:basis-full">
+            {errorFiltro}
+          </p>
+        )}
+      </form>
 
       {mensajeExito && (
         <MensajeExito mensaje={mensajeExito} onCerrar={() => setMensajeExito(null)} />
       )}
       {errorAccion && <MensajeError mensaje={errorAccion} />}
 
-      {sesion && cargando && <Cargando texto="Cargando tu historial..." />}
+      {cargando && <Cargando texto="Cargando tu historial..." />}
 
-      {sesion && !cargando && error && (
+      {!cargando && error && (
         <MensajeError mensaje={error} onReintentar={() => setIntento((n) => n + 1)} />
       )}
 
-      {sesion && !cargando && !error && busquedas.length === 0 && (
+      {!cargando && !error && busquedas.length === 0 && (
         <div className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
           <p>
             {hayFiltro
@@ -228,7 +218,7 @@ export function HistorialRecomendaciones() {
         </div>
       )}
 
-      {sesion && !cargando && !error && busquedas.length > 0 && (
+      {!cargando && !error && busquedas.length > 0 && (
         <>
           <p className="text-sm text-slate-500" aria-live="polite">
             {busquedas.length} {busquedas.length === 1 ? 'búsqueda' : 'búsquedas'}

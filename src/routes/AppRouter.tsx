@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import { Layout } from '../components/Layout/Layout.tsx'
+import { RutaProtegida } from '../components/RutaProtegida/RutaProtegida.tsx'
 import { Administracion } from '../pages/Administracion/Administracion.tsx'
 import { catalogos } from '../pages/Catalogo/configCatalogos.ts'
 import { FormularioCatalogo } from '../pages/Catalogo/FormularioCatalogo.tsx'
@@ -14,7 +15,9 @@ import { DetalleJuego } from '../pages/Juegos/DetalleJuego.tsx'
 import { FormularioJuego } from '../pages/Juegos/FormularioJuego.tsx'
 import { ListadoJuegos } from '../pages/Juegos/ListadoJuegos.tsx'
 import { ListadoJuegosAdmin } from '../pages/Juegos/ListadoJuegosAdmin.tsx'
+import { Login } from '../pages/Login/Login.tsx'
 import { NoEncontrada } from '../pages/NoEncontrada/NoEncontrada.tsx'
+import { Registro } from '../pages/Registro/Registro.tsx'
 import { DetalleRecomendacion } from '../pages/Recomendaciones/DetalleRecomendacion.tsx'
 import { HistorialRecomendaciones } from '../pages/Recomendaciones/HistorialRecomendaciones.tsx'
 import { Recomendar } from '../pages/Recomendar/Recomendar.tsx'
@@ -42,22 +45,40 @@ export const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <ErrorInesperado />,
     children: [
+      // Públicas
       { index: true, element: <Inicio /> },
-      { path: 'recomendar', element: <Recomendar /> },
-      { path: 'recomendaciones', element: <HistorialRecomendaciones /> },
-      { path: 'recomendaciones/:id', element: <DetalleRecomendacion /> },
+      { path: 'login', element: <Login /> },
+      { path: 'registro', element: <Registro /> },
       { path: 'juegos', element: <ListadoJuegos /> },
       { path: 'juegos/:id', element: <DetalleJuego /> },
-      { path: 'biblioteca', element: <MiBiblioteca /> },
-      { path: 'colecciones', element: <ListadoColecciones /> },
-      { path: 'colecciones/nueva', element: <FormularioColeccion key="nueva" /> },
-      { path: 'colecciones/:id', element: <DetalleColeccion /> },
-      { path: 'colecciones/:id/editar', element: <FormularioColeccion key="editar" /> },
-      { path: 'admin', element: <Administracion /> },
-      ...rutasCatalogos,
-      { path: 'admin/juegos', element: <ListadoJuegosAdmin /> },
-      { path: 'admin/juegos/nuevo', element: <FormularioJuego key="nuevo" /> },
-      { path: 'admin/juegos/:id/editar', element: <FormularioJuego key="editar" /> },
+
+      // Con sesión (cualquier usuario)
+      {
+        element: <RutaProtegida requiere="sesion" />,
+        children: [
+          { path: 'recomendar', element: <Recomendar /> },
+          { path: 'recomendaciones', element: <HistorialRecomendaciones /> },
+          { path: 'recomendaciones/:id', element: <DetalleRecomendacion /> },
+          { path: 'biblioteca', element: <MiBiblioteca /> },
+          { path: 'colecciones', element: <ListadoColecciones /> },
+          { path: 'colecciones/nueva', element: <FormularioColeccion key="nueva" /> },
+          { path: 'colecciones/:id', element: <DetalleColeccion /> },
+          { path: 'colecciones/:id/editar', element: <FormularioColeccion key="editar" /> },
+        ],
+      },
+
+      // Solo ADMIN
+      {
+        element: <RutaProtegida requiere="admin" />,
+        children: [
+          { path: 'admin', element: <Administracion /> },
+          ...rutasCatalogos,
+          { path: 'admin/juegos', element: <ListadoJuegosAdmin /> },
+          { path: 'admin/juegos/nuevo', element: <FormularioJuego key="nuevo" /> },
+          { path: 'admin/juegos/:id/editar', element: <FormularioJuego key="editar" /> },
+        ],
+      },
+
       { path: '*', element: <NoEncontrada /> },
     ],
   },

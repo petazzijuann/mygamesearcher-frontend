@@ -23,3 +23,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Resultados de Playwright (tests end-to-end)
+test-results/
+playwright-report/
+blob-report/
