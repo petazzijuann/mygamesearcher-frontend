@@ -4,6 +4,9 @@ import { Administracion } from '../pages/Administracion/Administracion.tsx'
 import { catalogos } from '../pages/Catalogo/configCatalogos.ts'
 import { FormularioCatalogo } from '../pages/Catalogo/FormularioCatalogo.tsx'
 import { ListadoCatalogo } from '../pages/Catalogo/ListadoCatalogo.tsx'
+import { DetalleColeccion } from '../pages/Colecciones/DetalleColeccion.tsx'
+import { FormularioColeccion } from '../pages/Colecciones/FormularioColeccion.tsx'
+import { ListadoColecciones } from '../pages/Colecciones/ListadoColecciones.tsx'
 import { ErrorInesperado } from '../pages/ErrorInesperado/ErrorInesperado.tsx'
 import { Inicio } from '../pages/Inicio/Inicio.tsx'
 import { FormularioJuego } from '../pages/Juegos/FormularioJuego.tsx'
@@ -34,6 +37,10 @@ export const router = createBrowserRouter([
     errorElement: <ErrorInesperado />,
     children: [
       { index: true, element: <Inicio /> },
+      { path: 'colecciones', element: <ListadoColecciones /> },
+      { path: 'colecciones/nueva', element: <FormularioColeccion key="nueva" /> },
+      { path: 'colecciones/:id', element: <DetalleColeccion /> },
+      { path: 'colecciones/:id/editar', element: <FormularioColeccion key="editar" /> },
       { path: 'admin', element: <Administracion /> },
       ...rutasCatalogos,
       { path: 'admin/juegos', element: <ListadoJuegosAdmin /> },

@@ -46,7 +46,7 @@ export function obtenerMensajeError(error: unknown): string {
     return 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'
   }
   if (error.response.status === 401) {
-    return 'Necesitás iniciar sesión como administrador para hacer esto.'
+    return 'Necesitás iniciar sesión para hacer esto.'
   }
   if (error.response.status === 403) {
     return 'No tenés permiso para hacer esta acción.'

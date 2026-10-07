@@ -156,3 +156,43 @@
 7. Sin plataformas cargadas, "Nuevo juego" muestra el aviso con el link a Plataformas.
 8. Eliminar un juego con la confirmación.
 9. Revisar en 375px (una columna, tarjetas), 768px (campos de a dos, selectores de a tres, tabla) y 1280px.
+
+## Paso 5 - ABM de Colección (07/10/2026)
+**Qué se hizo:** cada usuario puede crear, ver, editar y eliminar sus colecciones, y agregarles o quitarles juegos desde el detalle (CUU "Administrar colección"). Se sumó "Mis colecciones" al menú.
+
+**Cómo se hizo:**
+- Rama `feature/abm-coleccion` creada desde `dev`.
+- `src/types/coleccion.ts`: se agregaron `CrearColeccionDto`, `ActualizarColeccionDto` y `AgregarJuegoDto`, según el openapi.
+- `src/services/coleccionService.ts`:
+  - `listar` (solo las del usuario logueado), `obtenerPorId`, `crear`, `actualizar` y `eliminar`.
+  - `agregarJuego` (`POST /colecciones/:id/juegos`) y `quitarJuego` (`DELETE /colecciones/:id/juegos/:juegoId`).
+- `src/services/api.ts`: el mensaje del 401 pasó a ser "Necesitás iniciar sesión para hacer esto.", porque las colecciones las usa cualquier usuario y no solo ADMIN.
+- `src/utils/fechas.ts`: `formatearFecha(iso)` usa `Intl.DateTimeFormat('es-AR')` y muestra, por ejemplo, "7 de octubre de 2026".
+- `src/pages/Colecciones/`:
+  - `ListadoColecciones.tsx`: tarjetas `<article>` con nombre, cantidad de juegos, fecha (`<time>`) y descripción; botones Ver, Editar y Eliminar (con confirmación).
+  - `FormularioColeccion.tsx`: nombre (obligatorio, máximo 100) y descripción (opcional, máximo 500, con contador; vacía se manda como `null`). Al crear, lleva directo al detalle para empezar a agregar juegos.
+  - `DetalleColeccion.tsx`: datos de la colección, lista de juegos con "Quitar" y buscador "Agregar juegos". El buscador usa `juegoService.listar(titulo)` y marca como "Ya agregado" los juegos que ya están en la colección.
+- `src/routes/AppRouter.tsx`: rutas `/colecciones`, `/colecciones/nueva`, `/colecciones/:id` y `/colecciones/:id/editar`.
+- `src/components/Layout/Layout.tsx`: link "Mis colecciones" en el menú.
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Juegos solo desde el detalle:** se usan los endpoints propios de agregar y quitar (el CUU del backend), el formulario queda simple y se ve al instante qué juegos tiene la colección. Se descartó elegir los juegos en el formulario de alta con `juegoIds`.
+- **Del alta al detalle:** después de crear una colección lo siguiente es agregarle juegos, así que se va directo al detalle y no al listado.
+- **Quitar sin confirmación:** quitar un juego se deshace volviendo a agregarlo. Eliminar la colección entera sí pide confirmación.
+- **Buscador con botón "Buscar" (submit):** no se busca en cada tecla, así no se le pega a la API todo el tiempo, y el evento submit también funciona con Enter.
+- **En el detalle, la colección se actualiza con la respuesta del `POST`** (que devuelve la colección completa) y, al quitar, se filtra localmente. No hace falta volver a pedir todo.
+- **"Mis colecciones" en el menú y no en Administración:** las colecciones son de cada usuario, no son datos que carga el ADMIN.
+
+**Requisito del TP que cubre:** ABM de Colección y CUU "Administrar colección" (agregar y quitar juegos). Eventos (submit, click), reactividad ante el estado (botones "Agregando..." y "Quitando...", "Ya agregado"), servicio para la API, HTML semántico (`article`, `time`, `search`), errores amigables y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend. Cargar el token de cualquier usuario en `localStorage` (como en el Paso 2) y tener juegos cargados (Paso 4).
+2. Sin token, "Mis colecciones" muestra "Necesitás iniciar sesión para hacer esto."
+3. "Mis colecciones" → "Nueva colección": crear una. Lleva al detalle con el mensaje "Se creó la colección...".
+4. En "Agregar juegos", buscar por título (o vacío para ver todos) y apretar "Agregar". El juego pasa a la lista de la izquierda y su botón dice "Ya agregado".
+5. Quitar un juego con "Quitar".
+6. "Editar datos": cambiar nombre y descripción y guardar.
+7. Volver al listado y eliminar la colección con la confirmación.
+8. Ir a `/colecciones/9999`: muestra el error de "no se encontró".
+9. Revisar en 375px (una columna), 640px (listado de a dos) y 1024px (listado de a tres; en el detalle, juegos y buscador lado a lado).
