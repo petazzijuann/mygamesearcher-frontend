@@ -4,7 +4,7 @@ import { MenuNavegacion, type ItemMenu } from '../MenuNavegacion/MenuNavegacion.
 // Se agrega un link por cada pantalla a medida que se construye.
 const itemsMenu: ItemMenu[] = [
   { ruta: '/', texto: 'Inicio' },
-  { ruta: '/generos', texto: 'Géneros' },
+  { ruta: '/admin', texto: 'Administración' },
 ]
 
 export function Layout() {

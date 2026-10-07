@@ -74,3 +74,43 @@
 6. Editar un género: el formulario aparece con el nombre cargado. Ir a `/generos/9999/editar` muestra el error de "no se encontró".
 7. Eliminar: se abre el diálogo de confirmación. Si un juego usa ese género, se ve el mensaje de la API y el género no se borra.
 8. Revisar en 375px (tarjetas), 768px (tabla) y 1280px.
+
+## Paso 3 - ABM de Plataforma, Característica y Clasificación de Edad (07/10/2026)
+**Qué se hizo:** ABM de Plataforma, Característica y Clasificación de Edad. Como las tres tienen la misma forma que Género (`id`, `nombre`), se hicieron un servicio y dos pantallas genéricas de "catálogo", y Género pasó a usarlas también. Se sumó la pantalla "Administración", que reúne todos los ABM, y los ABM se movieron a rutas bajo `/admin`.
+
+**Cómo se hizo:**
+- Rama `feature/abm-catalogos` creada desde `dev`.
+- `src/types/plataforma.ts`, `caracteristica.ts` y `clasificacionEdad.ts`: se agregaron los DTOs `Crear...Dto` y `Actualizar...Dto`, según el openapi.
+- `src/services/catalogoService.ts`:
+  - `crearServicioCatalogo(ruta)` devuelve `listar`, `obtenerPorId`, `crear`, `actualizar` y `eliminar`.
+  - Define las interfaces `ItemCatalogo` y `ServicioCatalogo`.
+- Un servicio por recurso:
+  - Nuevos: `plataformaService.ts` (`/plataformas`), `caracteristicaService.ts` (`/caracteristicas`) y `clasificacionEdadService.ts` (`/clasificaciones-edad`).
+  - `generoService.ts` ahora usa la misma función.
+- `src/pages/Catalogo/`:
+  - `configCatalogos.ts`: configuración de cada catálogo (ruta, título, singular, femenino o masculino, descripción y servicio).
+  - `ListadoCatalogo.tsx` y `FormularioCatalogo.tsx`: reciben esa configuración por props.
+- Se borraron `src/pages/Generos/ListadoGeneros.tsx` y `FormularioGenero.tsx`, reemplazadas por las genéricas.
+- `src/pages/Administracion/Administracion.tsx`: una tarjeta por catálogo (1 columna en celular, 2 desde SM y 4 desde LG).
+- `src/routes/AppRouter.tsx`:
+  - `/admin`.
+  - Para cada catálogo, `<rutaBase>`, `<rutaBase>/nuevo` y `<rutaBase>/:id/editar`, generadas a partir de la configuración.
+  - Las rutas de Género cambiaron de `/generos` a `/admin/generos`.
+- Menú: "Géneros" se reemplazó por "Administración".
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Pantallas genéricas:** copiar las de Género para cada entidad dejaba 8 pantallas casi idénticas; un arreglo había que hacerlo 4 veces. Con la configuración por props, sumar un catálogo es agregar un objeto a `catalogos`. Se mantiene un archivo de servicio por recurso, como pide la estructura del proyecto.
+- **Género gramatical en la configuración** (`femenino`), para que los textos sean correctos: "Nueva plataforma", "Se eliminó la característica", "Nuevo género".
+- **`key` en cada ruta** para que React arranque la pantalla de cero al pasar de un catálogo a otro y no quede el estado del anterior.
+- **Pantalla "Administración" en vez de un link por ABM en el menú:** con Juegos y Colecciones el menú no entraría en tablet. Además, cuando exista el login, proteger `/admin` y ocultar un solo link alcanza para restringir los ABM a ADMIN. Se descartó mostrar el botón ☰ hasta LG con todos los links.
+
+**Requisito del TP que cubre:** ABM de Plataforma, Característica y Clasificación de Edad. Componentes con props de entrada (`config`) y de salida, reactividad ante el estado, servicios para la API, errores amigables (incluido el 409 al eliminar algo que usa un juego) y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend (`npm run dev`). Para crear, editar y eliminar hace falta el token de ADMIN en `localStorage` (ver el Paso 2).
+2. En el menú, entrar a "Administración": se ven 4 tarjetas (Géneros, Plataformas, Características y Clasificaciones de edad).
+3. Entrar a "Plataformas": crear, editar y eliminar una. Los textos dicen "Nueva plataforma", "Se creó la plataforma...". Repetir con Características y Clasificaciones de edad.
+4. Entrar a "Géneros": funciona igual que antes, ahora en `/admin/generos`.
+5. Ir a `/admin/plataformas/9999/editar`: muestra el error de "no se encontró".
+6. Revisar la pantalla de Administración en 375px (1 columna), 640px (2 columnas) y 1024px (4 columnas).
