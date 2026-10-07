@@ -6,6 +6,8 @@ import { FormularioCatalogo } from '../pages/Catalogo/FormularioCatalogo.tsx'
 import { ListadoCatalogo } from '../pages/Catalogo/ListadoCatalogo.tsx'
 import { ErrorInesperado } from '../pages/ErrorInesperado/ErrorInesperado.tsx'
 import { Inicio } from '../pages/Inicio/Inicio.tsx'
+import { FormularioJuego } from '../pages/Juegos/FormularioJuego.tsx'
+import { ListadoJuegosAdmin } from '../pages/Juegos/ListadoJuegosAdmin.tsx'
 import { NoEncontrada } from '../pages/NoEncontrada/NoEncontrada.tsx'
 
 // Listado, alta y edición de cada catálogo. La "key" hace que React arranque
@@ -34,6 +36,9 @@ export const router = createBrowserRouter([
       { index: true, element: <Inicio /> },
       { path: 'admin', element: <Administracion /> },
       ...rutasCatalogos,
+      { path: 'admin/juegos', element: <ListadoJuegosAdmin /> },
+      { path: 'admin/juegos/nuevo', element: <FormularioJuego key="nuevo" /> },
+      { path: 'admin/juegos/:id/editar', element: <FormularioJuego key="editar" /> },
       { path: '*', element: <NoEncontrada /> },
     ],
   },

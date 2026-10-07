@@ -114,3 +114,45 @@
 4. Entrar a "Géneros": funciona igual que antes, ahora en `/admin/generos`.
 5. Ir a `/admin/plataformas/9999/editar`: muestra el error de "no se encontró".
 6. Revisar la pantalla de Administración en 375px (1 columna), 640px (2 columnas) y 1024px (4 columnas).
+
+## Paso 4 - ABM de Juego (07/10/2026)
+**Qué se hizo:** alta, baja, modificación y listado de juegos desde Administración. El formulario carga título, año, descripción, imagen (con vista previa), clasificación de edad y las listas de plataformas, géneros y características. Se sumaron dos componentes reutilizables: `SelectorMultiple` e `ImagenJuego`.
+
+**Cómo se hizo:**
+- Rama `feature/abm-juego` creada desde `dev`.
+- `src/types/juego.ts`: se agregaron `CrearJuegoDto` y `ActualizarJuegoDto`, según el openapi.
+- `src/services/juegoService.ts`: `listar(titulo?)` (manda `?titulo=` si se pasa un filtro), `obtenerPorId`, `crear`, `actualizar` y `eliminar`.
+- `src/components/SelectorMultiple/SelectorMultiple.tsx`:
+  - Grupo de checkboxes con forma de "chips", dentro de `<fieldset>` y `<legend>`.
+  - Recibe las opciones, los ids elegidos y el error; devuelve los cambios con `onCambiar(ids)`.
+  - Muestra cuántas opciones hay elegidas ("2 de 5").
+- `src/components/ImagenJuego/ImagenJuego.tsx`: muestra la portada; si no hay URL o la imagen no carga, muestra un recuadro "Sin imagen".
+- `src/utils/mensajeNavegacion.ts`: la función que lee el mensaje de éxito que se pasa al volver al listado, antes repetida en cada listado.
+- `src/pages/Juegos/ListadoJuegosAdmin.tsx`: tarjetas con miniatura en celular y tabla (juego, año, clasificación y acciones) desde MD. Eliminar pide confirmación.
+- `src/pages/Juegos/FormularioJuego.tsx`:
+  - Carga en paralelo (`Promise.all`) las clasificaciones, plataformas, géneros y características, y el juego si se está editando.
+  - Valida con las mismas reglas del DTO y muestra un error debajo de cada campo.
+  - Arma el DTO convirtiendo los textos a número y la URL vacía a `null`.
+- `src/pages/Administracion/Administracion.tsx`: se agregó la tarjeta "Juegos" (grilla de 1, 2 y 3 columnas).
+- `src/routes/AppRouter.tsx`: rutas `/admin/juegos`, `/admin/juegos/nuevo` y `/admin/juegos/:id/editar`.
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Checkboxes y no `<select multiple>`:** en el select múltiple, sobre todo en celular, no se entiende que se pueden elegir varias opciones. `SelectorMultiple` se va a reutilizar en el Paso 8 (generar recomendación), que pide las mismas tres listas.
+- **Valores del formulario como texto:** año y clasificación se guardan como `string` mientras se escribe, para permitir el campo vacío, y se convierten a número recién al armar el DTO. Así se evitan `NaN` y no hace falta `any`.
+- **Al editar se manda el juego completo:** el `PATCH` reemplaza las listas de ids que recibe, así que mandar siempre todo evita borrar algo sin querer.
+- **Año máximo 2026 fijo**, igual que en el backend, para no aceptar un año que la API va a rechazar. Quedó un comentario para cambiarlo si cambia allá.
+- **Aviso de catálogos faltantes:** si no hay clasificaciones, plataformas o géneros, el formulario no se muestra y aparece un aviso con links para cargarlos, porque sin esos datos el juego no se puede crear.
+
+**Requisito del TP que cubre:** ABM de Juego. Componentes con props de entrada y de salida (`onCambiar`), manejo de eventos y reactividad ante el estado (validación en vivo, vista previa de la imagen, contador de caracteres). Servicio para la API, datos tipados sin `any`, errores amigables y diseño responsive mobile-first.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend. Cargar el token de ADMIN (ver el Paso 2) y tener al menos una clasificación, una plataforma y un género cargados (Paso 3).
+2. Ir a Administración → "Juegos" → "Nuevo juego".
+3. Apretar "Crear juego" con todo vacío: cada campo obligatorio muestra su error en rojo y arriba aparece "Revisá los campos marcados en rojo".
+4. Completar los datos, pegar una URL de imagen (se ve la vista previa) y elegir plataformas, géneros y características tocando los chips. Al crear, vuelve al listado con el mensaje "Se creó el juego...".
+5. Editar el juego: el formulario aparece con todos los datos y chips marcados. Cambiar algo y guardar.
+6. Probar un año fuera de rango (por ejemplo 1900) y una URL inválida.
+7. Sin plataformas cargadas, "Nuevo juego" muestra el aviso con el link a Plataformas.
+8. Eliminar un juego con la confirmación.
+9. Revisar en 375px (una columna, tarjetas), 768px (campos de a dos, selectores de a tres, tabla) y 1280px.
