@@ -1,11 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { AvisoIniciarSesion } from '../../components/AvisoIniciarSesion/AvisoIniciarSesion.tsx'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { DialogoConfirmacion } from '../../components/DialogoConfirmacion/DialogoConfirmacion.tsx'
 import { ImagenJuego } from '../../components/ImagenJuego/ImagenJuego.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { MensajeExito } from '../../components/MensajeExito/MensajeExito.tsx'
-import { haySesion, obtenerMensajeError } from '../../services/api.ts'
+import { useSesion } from '../../context/sesion.ts'
+import { obtenerMensajeError } from '../../services/api.ts'
 import { recomendacionService } from '../../services/recomendacionService.ts'
 import type { BusquedaResumen } from '../../types/busqueda.ts'
 import { esFechaAAAAMMDD, formatearFecha, formatearFechaHora } from '../../utils/fechas.ts'
@@ -22,7 +24,7 @@ function resumirCriterios(busqueda: BusquedaResumen): string {
 // Historial de recomendaciones del usuario, con filtro por fecha (desde / hasta).
 // El filtro vive en la URL (?desde=AAAA-MM-DD&hasta=AAAA-MM-DD).
 export function HistorialRecomendaciones() {
-  const sesion = haySesion()
+  const sesion = useSesion().usuario !== null
   const location = useLocation()
   const navigate = useNavigate()
   const [parametros, setParametros] = useSearchParams()
@@ -137,11 +139,7 @@ export function HistorialRecomendaciones() {
         </Link>
       </header>
 
-      {!sesion && (
-        <p className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
-          Iniciá sesión para ver tu historial de recomendaciones.
-        </p>
-      )}
+      {!sesion && <AvisoIniciarSesion para="ver tu historial de recomendaciones" />}
 
       {sesion && (
         <form

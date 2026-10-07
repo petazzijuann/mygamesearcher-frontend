@@ -426,3 +426,65 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 1. Abrir el repo en GitHub: el README muestra la descripción, la instalación y las pantallas.
 2. Seguir los pasos de "Instalación y uso" desde cero: la app levanta y carga los juegos desde la API.
 3. En la app, el encabezado, el pie, el inicio y la pestaña del navegador dicen "MyGameSearcher".
+
+## Paso 12 - Login, registro y sesión (07/10/2026)
+**Qué se hizo:** pantallas para ingresar y crear una cuenta, y una sesión compartida en toda la app. El encabezado muestra "Ingresar" o el saludo con "Cerrar sesión", y el menú muestra solo los links que corresponden a la sesión y al rol. Si el token vence, la app avisa y manda al login.
+
+**Cómo se hizo:**
+- Rama `feature/login` creada desde `dev`.
+- Tipos, según el openapi:
+  - `src/types/auth.ts`: `LoginDto`, `UsuarioLogin` y `RespuestaLoginDto`.
+  - `src/types/usuario.ts`: `CrearUsuarioDto`.
+- Servicios: `authService.login()` (`POST /auth/login`) y `usuarioService.registrar()` (`POST /usuarios`).
+- `src/context/sesion.ts` y `src/context/SesionProvider.tsx` (carpeta nueva):
+  - Contexto de React con `usuario`, `esAdmin`, `iniciarSesion()` y `cerrarSesion()`. Guarda el token (clave `token`, la misma de antes) y el usuario (clave `usuario`) en `localStorage`.
+  - Valida lo guardado al arrancar: si falta algo o está roto, arranca sin sesión.
+  - Se sincroniza si se entra o se sale en otra pestaña.
+  - `useSesion()` lo lee desde cualquier componente.
+- `src/main.tsx`: la app queda envuelta en `<SesionProvider>`.
+- `src/services/api.ts`:
+  - Un interceptor de respuesta avisa con el evento `sesion-vencida` cuando la API responde 401 a un pedido que llevaba token. El 401 del login queda afuera, porque ahí significa "email o contraseña incorrectos".
+  - `obtenerMensajeError` deja pasar el mensaje del backend en ese caso.
+  - Se quitó `haySesion()`; ahora se usa `useSesion()`.
+- `src/pages/Login/Login.tsx`:
+  - Email y contraseña con validación y el error de la API.
+  - Muestra "Tu sesión venció" si se llegó por vencimiento.
+  - Al ingresar, vuelve a la pantalla de origen (`state.desde`, validado en `src/utils/destinoNavegacion.ts`).
+- `src/pages/Registro/Registro.tsx`:
+  - Nombre, apellido, email, contraseña con confirmación (8 a 72) y plataforma favorita opcional.
+  - Al crear la cuenta, inicia sesión solo.
+- `src/components/AreaSesion/AreaSesion.tsx`: "Ingresar", o "Hola, Nombre" (con la etiqueta ADMIN si corresponde) y "Cerrar sesión".
+- `src/components/AvisoIniciarSesion/AvisoIniciarSesion.tsx`: aviso con link al login que vuelve a la pantalla actual. Se usa en el detalle del juego, en Recomendame y en Mis recomendaciones, en lugar de los textos sueltos.
+- `src/components/Layout/Layout.tsx`:
+  - Menú filtrado: "Mis recomendaciones", "Mi biblioteca" y "Mis colecciones" solo con sesión; "Administración" solo para ADMIN.
+  - Al vencer la sesión, navega al login.
+  - Desde LG, el menú va en una segunda fila del encabezado.
+- `src/components/MenuNavegacion/MenuNavegacion.tsx`: nueva prop `className`.
+- Rutas `/login` y `/registro`. README y `docs/README.md`: se reemplazaron las instrucciones de cargar el token a mano.
+- Verificado:
+  - `npm run build` y `npm run lint` sin errores.
+  - Contra la API real (a través del proxy), con un usuario de prueba que se borró al final:
+    - Login incorrecto → 401 "Email o contraseña incorrectos".
+    - Registro con contraseña corta → 400. Registro → 201 con rol USUARIO. Email repetido → 409.
+    - Login → 200, y el `usuario` trae exactamente los campos de `UsuarioLogin`.
+    - Token inválido → 401. USUARIO creando un género → 403.
+
+**Por qué:**
+- **Contexto de React para la sesión:** varias partes (encabezado, menú, pantallas) necesitan saber si hay sesión y de quién, y se tienen que actualizar solas al entrar o salir. `haySesion()` solo leía `localStorage` al dibujar y no se enteraba de los cambios. No hizo falta instalar nada.
+- **El hook en un archivo aparte** (`sesion.ts`) del componente (`SesionProvider.tsx`), para cumplir la regla de oxlint que pide que los archivos de componentes exporten solo componentes.
+- **Sesión vencida por evento:** el interceptor de axios no tiene acceso a React. Con un evento del navegador queda desacoplado: `api.ts` avisa y `SesionProvider` decide.
+- **Iniciar sesión después de registrarse:** el registro devuelve el usuario pero no el token; se hace el login con los mismos datos para no pedirlos dos veces.
+- **Menú en dos filas desde LG:** con el saludo y "Cerrar sesión", los links ya no entraban en una sola fila. En celular y tablet sigue el botón ☰.
+- **La protección de las rutas** (que alguien sin sesión o sin rol no pueda entrar escribiendo la URL) queda para el Paso 13.
+
+**Requisito del TP que cubre:** login (requisito de aprobación). Componentes con props de entrada y de salida, eventos, reactividad ante el estado (la sesión cambia el encabezado y el menú), servicios para la API, datos tipados, errores amigables y diseño responsive.
+
+**Cómo probarlo:**
+1. Levantar el backend y el frontend.
+2. Sin sesión: el menú muestra Inicio, Juegos y Recomendame, y arriba a la derecha aparece "Ingresar".
+3. "Ingresar" con datos incorrectos: aparece "Email o contraseña incorrectos".
+4. "Creá una": completar el formulario (probar contraseñas que no coinciden). Al crear la cuenta, entra solo y vuelve a donde estaba. El menú suma Mis recomendaciones, Mi biblioteca y Mis colecciones; arriba dice "Hola, Nombre".
+5. Cerrar sesión e ingresar con el ADMIN del `.env` del backend: aparece la etiqueta ADMIN y el link "Administración".
+6. En el detalle de un juego sin sesión, "Iniciá sesión" lleva al login y, al ingresar, vuelve al mismo juego.
+7. Sesión vencida: con sesión iniciada, en la consola (F12) correr `localStorage.setItem('token', 'x')` y entrar a "Mi biblioteca". La app manda al login con "Tu sesión venció".
+8. Revisar en 375px (logo, "Ingresar" y ☰ en una fila), 768px y 1024px (menú en una segunda fila).

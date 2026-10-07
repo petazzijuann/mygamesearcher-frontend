@@ -1,12 +1,14 @@
 import axios from 'axios'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { AvisoIniciarSesion } from '../../components/AvisoIniciarSesion/AvisoIniciarSesion.tsx'
 import { BotonesBiblioteca } from '../../components/BotonesBiblioteca/BotonesBiblioteca.tsx'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { SelectorMultiple } from '../../components/SelectorMultiple/SelectorMultiple.tsx'
 import { TarjetaJuego } from '../../components/TarjetaJuego/TarjetaJuego.tsx'
-import { haySesion, obtenerMensajeError } from '../../services/api.ts'
+import { useSesion } from '../../context/sesion.ts'
+import { obtenerMensajeError } from '../../services/api.ts'
 import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import { caracteristicaService } from '../../services/caracteristicaService.ts'
 import { generoService } from '../../services/generoService.ts'
@@ -44,7 +46,7 @@ function validar(criterios: Criterios): ErroresCriterios {
 
 // CUU Generar recomendación: el usuario elige criterios y la API devuelve de 1 a 3 juegos.
 export function Recomendar() {
-  const sesion = haySesion()
+  const sesion = useSesion().usuario !== null
 
   const [opciones, setOpciones] = useState<Opciones | null>(null)
   const [cargandoOpciones, setCargandoOpciones] = useState(sesion)
@@ -154,11 +156,7 @@ export function Recomendar() {
         </p>
       </header>
 
-      {!sesion && (
-        <p className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
-          Iniciá sesión para recibir recomendaciones personalizadas.
-        </p>
-      )}
+      {!sesion && <AvisoIniciarSesion para="recibir recomendaciones personalizadas" />}
 
       {sesion && cargandoOpciones && <Cargando texto="Cargando opciones..." />}
 
