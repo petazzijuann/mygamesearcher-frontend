@@ -1,9 +1,27 @@
-# MyGameSearcher - Frontend
+# Documentación - MyGameSearcher Frontend
 
-[Documentación](./docs/README.md)
+La instalación y el uso están en el [README principal](../README.md).
 
-## Instalación
-1. Clonar el repo
-2. `npm install`
-3. Crear `.env` en base a `.env.example`
-4. `npm run dev`
+## Contenido
+
+- [Bitácora](./bitacora.md): registro de cada paso del desarrollo (qué se hizo, cómo, por qué, qué requisito del TP cubre y cómo probarlo).
+- [openapi.json](./api/openapi.json): especificación de la API del backend. Es la referencia para las rutas y los tipos de datos (`src/types/`).
+
+## Requisitos de la cátedra y dónde se cumplen
+
+| Requisito | Dónde |
+|---|---|
+| CSS mobile-first con breakpoints SM, MD y LG | Tailwind en todas las pantallas (por ejemplo, las grillas de 1, 2, 3 y 4 columnas) |
+| HTML5 semántico | `header`, `nav`, `main`, `footer`, `article`, `section`, `time`, `dl`, `fieldset`, `search` |
+| Errores manejados de forma amigable | `obtenerMensajeError` en `src/services/api.ts`, componentes `MensajeError` y `Cargando`, página 404 y pantalla de error inesperado |
+| Componentes con eventos, estado y props de entrada y salida | Por ejemplo, `MenuNavegacion` (`onNavegar`), `Buscador` (`onBuscar`), `SelectorMultiple` (`onCambiar`), `BotonesBiblioteca` (`onCambio`), `FormularioCalificacion` (`onCalificada`) |
+| Al menos un servicio para la API | `src/services/` (un servicio por recurso, con una instancia común de axios) |
+| Datos de la API tipados, sin `any` | `src/types/` |
+
+## Cómo probar las pantallas con sesión
+
+Mientras no exista la pantalla de login:
+
+1. Login en el Swagger del backend (`http://localhost:3000/api`, `POST /auth/login`) y copiar el `token`.
+2. En la consola del navegador (F12): `localStorage.setItem('token', 'PEGAR_TOKEN')`.
+3. Recargar la página.

@@ -7,7 +7,7 @@ export function Inicio() {
         Encontrá tu próximo videojuego
       </h1>
       <p className="mt-4 text-base text-slate-600 md:text-lg">
-        DGame te recomienda de 1 a 3 videojuegos según los géneros, las características y la
+        MyGameSearcher te recomienda de 1 a 3 videojuegos según los géneros, las características y la
         plataforma que elijas.
       </p>
       <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
