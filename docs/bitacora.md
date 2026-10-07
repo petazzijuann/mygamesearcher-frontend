@@ -384,3 +384,45 @@
 2. Levantar el backend (`npm run start:dev` en `mygamesearcher-backend`) y el frontend (`npm run dev`). **Después de cambiar el `.env` hay que reiniciar `npm run dev`.**
 3. Entrar a "Juegos": la lista se carga desde la API. En la pestaña Red (F12) los pedidos van a `localhost:5173/api/juegos` y no hay errores de CORS.
 4. Apagar el backend y recargar: aparece "No se pudo conectar con el servidor" con el botón "Reintentar".
+
+## Paso 11 - Preparación de la entrega de regularidad (07/10/2026)
+**Qué se hizo:** se reemplazó el README de la plantilla de Vite por uno propio del proyecto, se ordenó la documentación y se unificó el nombre de la app como **MyGameSearcher** en la interfaz. Además, se registran acá las pruebas hechas contra la API real antes de la entrega.
+
+**Cómo se hizo:**
+- Rama `feature/preparar-entrega` creada desde `dev`.
+- `README.md`, reescrito en español:
+  - Descripción del proyecto, stack y requisitos (Node 20.19 o superior y el backend levantado).
+  - Instalación paso a paso, variables del `.env`, cómo funciona el proxy a la API y cómo cargar un token hasta que exista el login.
+  - Tabla de pantallas y rutas, estructura de carpetas, scripts y links a la documentación.
+- `docs/README.md`: índice de la documentación y una tabla con dónde se cumple cada requisito de la cátedra.
+- Interfaz: "DGame" pasó a "MyGameSearcher" en el título de la pestaña (`index.html`), el encabezado y el pie (`Layout.tsx`) y el texto del inicio (`Inicio.tsx`).
+- Se corrigió la dirección del Swagger del backend en la documentación: es `http://localhost:3000/api`.
+- Verificado con `npm run build` y `npm run lint` sin errores.
+
+**Pruebas contra la API real (antes de la entrega):** con el backend levantado y a través del proxy de Vite, un script hizo los mismos pedidos que la app con el usuario ADMIN. Usó registros "PRUEBA FRONT" que se borraron al final. **57 de 57 pruebas dieron lo esperado:**
+- **Login:** devuelve el token, con rol ADMIN.
+- **4 catálogos:** crear, duplicado (409), vacío (400), ver y editar.
+- **Juego:**
+  - Año y URL inválidos (400), crear, editar mandando el DTO completo y filtro por título.
+  - Borrar un género que usa un juego da 409.
+- **Colección:** crear, editar, agregar juego, agregarlo de nuevo (409) y quitarlo.
+- **Biblioteca:** guardar, duplicado (409), filtro por estado, cambiar de estado y quitar.
+- **Recomendación:**
+  - Generar devuelve el juego completo.
+  - Si el único candidato está "Ya jugado", da 404.
+  - El historial con filtro de fecha trae el juego resumido, como lo indican los tipos del Paso 9; `desde` posterior a `hasta` da 400.
+  - Detalle; calificar 4 (200) y calificar 7 (400).
+- **Limpieza:** no quedó ningún registro de prueba en la base.
+
+Lo que no se pudo verificar automáticamente es el aspecto visual en los tres breakpoints; queda para revisar en el navegador.
+
+**Por qué:**
+- El README es lo primero que se ve del repo. El de la plantilla estaba en inglés y no decía cómo instalar ni que hace falta el backend.
+- El nombre del proyecto es MyGameSearcher; la interfaz decía "DGame" y se unificó.
+
+**Requisito del TP que cubre:** entrega de regularidad (documentación y prolijidad del repo); interfaz usable sin manual (el README explica la instalación y la app se usa sin instrucciones).
+
+**Cómo probarlo:**
+1. Abrir el repo en GitHub: el README muestra la descripción, la instalación y las pantallas.
+2. Seguir los pasos de "Instalación y uso" desde cero: la app levanta y carga los juegos desde la API.
+3. En la app, el encabezado, el pie, el inicio y la pestaña del navegador dicen "MyGameSearcher".
