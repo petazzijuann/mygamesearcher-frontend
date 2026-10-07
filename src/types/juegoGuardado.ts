@@ -12,3 +12,12 @@ export interface JuegoGuardado {
   /** Fecha en formato ISO (date-time) */
   fecha: string
 }
+
+export interface GuardarJuegoDto {
+  juegoId: number
+  estado: EstadoJuego
+}
+
+export interface CambiarEstadoDto {
+  estado: EstadoJuego
+}
