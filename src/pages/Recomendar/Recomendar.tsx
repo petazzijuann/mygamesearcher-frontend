@@ -1,13 +1,11 @@
 import axios from 'axios'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { AvisoIniciarSesion } from '../../components/AvisoIniciarSesion/AvisoIniciarSesion.tsx'
 import { BotonesBiblioteca } from '../../components/BotonesBiblioteca/BotonesBiblioteca.tsx'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { SelectorMultiple } from '../../components/SelectorMultiple/SelectorMultiple.tsx'
 import { TarjetaJuego } from '../../components/TarjetaJuego/TarjetaJuego.tsx'
-import { useSesion } from '../../context/sesion.ts'
 import { obtenerMensajeError } from '../../services/api.ts'
 import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import { caracteristicaService } from '../../services/caracteristicaService.ts'
@@ -46,10 +44,8 @@ function validar(criterios: Criterios): ErroresCriterios {
 
 // CUU Generar recomendación: el usuario elige criterios y la API devuelve de 1 a 3 juegos.
 export function Recomendar() {
-  const sesion = useSesion().usuario !== null
-
   const [opciones, setOpciones] = useState<Opciones | null>(null)
-  const [cargandoOpciones, setCargandoOpciones] = useState(sesion)
+  const [cargandoOpciones, setCargandoOpciones] = useState(true)
   const [errorOpciones, setErrorOpciones] = useState<string | null>(null)
   /** Se incrementa con "Reintentar" para volver a disparar la carga */
   const [intento, setIntento] = useState(0)
@@ -70,7 +66,6 @@ export function Recomendar() {
   const tituloResultadosRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
-    if (!sesion) return
     let vigente = true
     setCargandoOpciones(true)
     setErrorOpciones(null)
@@ -87,7 +82,7 @@ export function Recomendar() {
     return () => {
       vigente = false
     }
-  }, [sesion, intento])
+  }, [intento])
 
   // Al mostrar los resultados, se lleva la vista y el foco al título (lo anuncia el lector de pantalla).
   useEffect(() => {
@@ -156,15 +151,13 @@ export function Recomendar() {
         </p>
       </header>
 
-      {!sesion && <AvisoIniciarSesion para="recibir recomendaciones personalizadas" />}
+      {cargandoOpciones && <Cargando texto="Cargando opciones..." />}
 
-      {sesion && cargandoOpciones && <Cargando texto="Cargando opciones..." />}
-
-      {sesion && !cargandoOpciones && errorOpciones && (
+      {!cargandoOpciones && errorOpciones && (
         <MensajeError mensaje={errorOpciones} onReintentar={() => setIntento((n) => n + 1)} />
       )}
 
-      {sesion && opciones && !busqueda && (
+      {opciones && !busqueda && (
         <form
           onSubmit={(evento) => void generar(evento)}
           noValidate

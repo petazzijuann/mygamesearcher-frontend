@@ -28,7 +28,9 @@ export function Layout() {
   useEffect(() => {
     if (!vencida) return
     olvidarVencimiento()
+    // replace: si RutaProtegida ya mandó al login, se reemplaza esa entrada (sin duplicar el historial).
     navigate('/login', {
+      replace: true,
       state: { desde: `${location.pathname}${location.search}`, vencida: true },
     })
   }, [vencida, olvidarVencimiento, navigate, location.pathname, location.search])
