@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Tests end-to-end (npm run test:e2e). Necesitan el backend levantado:
-// la app habla con la API real a través del proxy de Vite.
-const PUERTO = 5180
+// Tests end-to-end (npm run test:e2e). Necesitan el backend levantado: la app llama
+// directo a la API (VITE_API_URL). Se usa el puerto 5173 porque es el que el backend
+// permite por defecto en su CORS (FRONTEND_URL=http://localhost:5173).
+const PUERTO = 5173
 
 export default defineConfig({
   testDir: './e2e',

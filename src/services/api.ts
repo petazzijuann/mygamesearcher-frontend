@@ -11,6 +11,8 @@ export const RUTA_LOGIN = '/auth/login'
 export const EVENTO_SESION_VENCIDA = 'sesion-vencida'
 
 // Instancia común de axios: todos los servicios (generoService, juegoService, ...) la usan.
+// VITE_API_URL es la dirección del backend (en local http://localhost:3000; en Vercel, la
+// del backend publicado). Vite la escribe en el código al compilar: si cambia, hay que volver a publicar.
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' },
@@ -62,7 +64,8 @@ export function obtenerMensajeError(error: unknown): string {
   if (!axios.isAxiosError(error)) {
     return 'Ocurrió un error inesperado. Intentá de nuevo.'
   }
-  // Sin respuesta, o 502/503/504: el proxy de Vite no pudo llegar a la API (backend apagado).
+  // Sin respuesta (backend apagado, sin conexión o bloqueado por CORS), o 502/503/504
+  // (el servidor intermedio no pudo llegar a la API).
   const status = error.response?.status
   if (!error.response || status === 502 || status === 503 || status === 504) {
     return 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'

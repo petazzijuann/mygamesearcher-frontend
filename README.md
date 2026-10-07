@@ -14,7 +14,7 @@ Trabajo práctico de **Desarrollo de Software** - UTN FRRo. Este repo es el fron
 ## Requisitos
 
 - Node.js 20.19 o superior (o 22.12 o superior)
-- El backend `mygamesearcher-backend` levantado (por defecto en `http://localhost:3000`)
+- El backend `mygamesearcher-backend` levantado (por defecto en `http://localhost:3000`) y con este frontend permitido en su CORS (variable `FRONTEND_URL` del backend; por defecto ya permite `http://localhost:5173`)
 
 ## Instalación y uso
 
@@ -30,8 +30,7 @@ Trabajo práctico de **Desarrollo de Software** - UTN FRRo. Este repo es el fron
    ```
    | Variable | Para qué sirve | Valor por defecto |
    |---|---|---|
-   | `VITE_API_URL` | Ruta base que usa axios | `/api` |
-   | `API_PROXY_TARGET` | Dirección real de la API (solo la usa el proxy de Vite) | `http://localhost:3000` |
+   | `VITE_API_URL` | Dirección de la API del backend (sin barra al final) | `http://localhost:3000` |
 3. Levantar el backend (en su repo: `npm run start:dev`).
 4. Levantar el frontend:
    ```bash
@@ -41,9 +40,22 @@ Trabajo práctico de **Desarrollo de Software** - UTN FRRo. Este repo es el fron
 
 ### Cómo se comunica con la API
 
-El frontend le pide todo a `/api/...` y el **proxy de Vite** lo reenvía a la API, sacándole el `/api` (por ejemplo, `/api/juegos` llega como `/juegos`). Para el navegador es el mismo origen, así que no hace falta CORS. El proxy está configurado en `vite.config.ts` y solo existe con `npm run dev`.
+El frontend llama **directo a la API REST del backend**, a la dirección de `VITE_API_URL` (por ejemplo, `GET http://localhost:3000/juegos`). Como frontend y backend están en direcciones distintas, el backend tiene que permitir la del frontend en su CORS (variable `FRONTEND_URL` del backend).
 
 Todas las llamadas pasan por una instancia común de axios (`src/services/api.ts`), que agrega el token JWT si hay una sesión guardada y convierte los errores de la API en mensajes en español.
+
+Vite escribe `VITE_API_URL` dentro del código al compilar: si se cambia, hay que reiniciar `npm run dev` (o volver a publicar en Vercel).
+
+## Publicar en Vercel
+
+El frontend se publica como un proyecto de Vercel separado del backend.
+
+1. En Vercel: **Add New → Project** e importar este repo. Vercel detecta Vite solo: el comando de build es `npm run build` y la carpeta de salida, `dist`.
+2. En **Settings → Environment Variables**, cargar `VITE_API_URL` con la URL **pública** del backend, sin barra al final (por ejemplo `https://mygamesearcher-backend.vercel.app`). Tiene que ser la dirección de producción del backend, no la de un deploy puntual (`...-abc123.vercel.app`), que Vercel protege con login.
+3. Publicar (**Deploy**). Si después se cambia la variable, hay que volver a publicar.
+4. En el proyecto del **backend**, agregar la URL del frontend publicado a su `FRONTEND_URL` (por ejemplo `http://localhost:5173,https://mygamesearcher-frontend.vercel.app`) y volver a publicarlo, para que su CORS lo permita.
+
+`vercel.json` hace que cualquier ruta de la app (`/juegos/5`, `/admin`...) devuelva `index.html`. Sin eso, al recargar o abrir un link directo, Vercel respondería 404, porque esas rutas las maneja react-router en el navegador.
 
 ### Sesión
 
@@ -84,7 +96,7 @@ src/
 
 | Comando | Qué hace |
 |---|---|
-| `npm run dev` | Levanta la app en modo desarrollo (con el proxy a la API) |
+| `npm run dev` | Levanta la app en modo desarrollo en `http://localhost:5173` |
 | `npm run build` | Verifica los tipos y genera la versión de producción en `dist/` |
 | `npm run lint` | Revisa el código con oxlint |
 | `npm run preview` | Sirve la versión de producción generada |
