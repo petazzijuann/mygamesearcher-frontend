@@ -569,3 +569,34 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 2. `npm run test`: tienen que pasar los 5 casos de `SelectorEstrellas`.
 3. Levantar el backend. La primera vez, correr `npx playwright install chromium`.
 4. `npm run test:e2e`: tienen que pasar los 2 casos. Si falla algo, en `test-results/` queda un registro (`npx playwright show-trace ...`) para ver paso a paso qué pasó.
+
+## Paso 15 - Llamada directa a la API del backend y publicación en Vercel (07/10/2026)
+**Qué se hizo:** el frontend dejó de usar el proxy de Vite y llama directo a la API REST del backend, a la dirección de `VITE_API_URL`. Se agregó la configuración para publicarlo en Vercel como un proyecto separado del backend.
+
+**Cómo se hizo:**
+- Rama `feature/deploy-vercel` creada desde `dev`.
+- `vite.config.ts`: se sacaron el proxy y `loadEnv`; queda solo la configuración de plugins y de Vitest.
+- `.env.example` (y el `.env` local): `VITE_API_URL=http://localhost:3000`, con comentarios sobre CORS y sobre cómo cargarla en Vercel. Se eliminó `API_PROXY_TARGET`.
+- `vercel.json`: `rewrites` que devuelve `index.html` para cualquier ruta.
+- `src/services/api.ts`: comentarios actualizados (qué es `VITE_API_URL` y que se escribe al compilar). El código no cambió.
+- `playwright.config.ts`: el frontend de los tests corre en el puerto 5173, que es el que el backend permite por defecto en su CORS.
+- `README.md`: variables, "Cómo se comunica con la API" (llamada directa + CORS) y nueva sección "Publicar en Vercel".
+- Verificado: `npm run build`, `npm run lint` y `npm run test` (5/5) sin errores.
+
+**Por qué:**
+- **Llamada directa:** el grupo decidió que frontend y backend se comuniquen por la API usando la URL del backend en `VITE_API_URL`. El proxy del Paso 10 solo existía con el servidor de desarrollo de Vite, así que no servía para la app publicada. Ahora el backend tiene CORS (`FRONTEND_URL`), que era lo que el proxy evitaba.
+- **`vercel.json` con rewrites:** la app usa rutas del navegador (react-router). Sin esto, al recargar en `/juegos/5` o abrir un link directo, Vercel buscaría ese archivo y respondería 404.
+- **Proyecto de Vercel separado:** frontend y backend se publican y versionan por separado; el frontend solo necesita saber la URL del backend.
+- **`VITE_API_URL` se escribe al compilar:** por eso, si cambia la URL del backend, hay que volver a publicar el frontend. Quedó aclarado en el README y en `api.ts`.
+
+**Observaciones sobre el backend publicado (al 07/10/2026, para resolver en su repo):**
+- La URL de un deploy puntual (`mygamesearcher-backend-dphzeorhj.vercel.app`) responde 302 a un login de Vercel ("Protected by Vercel Authentication"). El navegador de los usuarios no puede usarla: en `VITE_API_URL` va la URL de producción, o hay que desactivar esa protección.
+- La URL de producción (`mygamesearcher-backend.vercel.app`) responde 500 `FUNCTION_INVOCATION_FAILED`: la función del backend falla al arrancar en Vercel.
+
+**Requisito del TP que cubre:** comunicación del frontend con el backend por la API REST, y la app publicada y accesible.
+
+**Cómo probarlo:**
+1. Local: levantar el backend (con CORS, `FRONTEND_URL` incluye `http://localhost:5173`) y `npm run dev`. En la pestaña Red (F12), los pedidos van a `http://localhost:3000/...` sin errores de CORS.
+2. `npm run test:e2e` con el backend levantado: pasan los 2 casos.
+3. En Vercel: importar el repo, cargar `VITE_API_URL` con la URL de producción del backend y publicar. Agregar la URL del frontend al `FRONTEND_URL` del backend y volver a publicarlo.
+4. En la app publicada, abrir directo una ruta como `/juegos` y recargar: tiene que cargar la app, no un 404 de Vercel.
