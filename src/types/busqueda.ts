@@ -14,3 +14,9 @@ export interface Busqueda {
   caracteristicas: Caracteristica[]
   recomendaciones: Recomendacion[]
 }
+
+export interface GenerarRecomendacionDto {
+  plataformaIds: number[]
+  generoIds: number[]
+  caracteristicaIds?: number[] | null
+}
