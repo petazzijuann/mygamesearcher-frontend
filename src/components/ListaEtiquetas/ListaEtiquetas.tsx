@@ -4,7 +4,8 @@ interface Etiqueta {
 }
 
 interface ListaEtiquetasProps {
-  items: Etiqueta[]
+  /** Si la API no mandó la lista (undefined o null), no se muestra nada en vez de romper la pantalla */
+  items?: Etiqueta[] | null
   /** Texto a mostrar si la lista está vacía */
   textoVacio?: string
   /** Tamaño chico para tarjetas, normal para el detalle */
@@ -13,6 +14,9 @@ interface ListaEtiquetasProps {
 
 // Muestra nombres (géneros, plataformas, características...) como etiquetas.
 export function ListaEtiquetas({ items, textoVacio = 'Ninguna', chica = false }: ListaEtiquetasProps) {
+  // Lista que no llegó: no hay dato para mostrar (distinto de una lista vacía).
+  if (!Array.isArray(items)) return null
+
   if (items.length === 0) {
     return <p className="text-sm text-slate-500">{textoVacio}</p>
   }

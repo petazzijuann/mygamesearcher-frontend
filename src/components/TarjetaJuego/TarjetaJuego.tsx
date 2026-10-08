@@ -4,14 +4,24 @@ import type { Juego } from '../../types/juego.ts'
 import { ImagenJuego } from '../ImagenJuego/ImagenJuego.tsx'
 import { ListaEtiquetas } from '../ListaEtiquetas/ListaEtiquetas.tsx'
 
+// Lo mínimo que necesita la tarjeta. Año, clasificación y géneros son opcionales porque
+// algunos endpoints devuelven el juego resumido: si falta un dato, no se muestra,
+// pero la tarjeta (y la pantalla) no se rompe. Un Juego completo también sirve.
+export type JuegoTarjeta = Pick<Juego, 'id' | 'titulo' | 'imagenUrl'> &
+  Partial<Pick<Juego, 'anioLanzamiento' | 'clasificacionEdad' | 'generos'>>
+
 interface TarjetaJuegoProps {
-  juego: Juego
+  juego: JuegoTarjeta
   /** Contenido extra al pie de la tarjeta (por ejemplo, datos de una recomendación) */
   pie?: ReactNode
 }
 
 // Tarjeta resumida de un juego; el título lleva al detalle.
 export function TarjetaJuego({ juego, pie }: TarjetaJuegoProps) {
+  const datos = [juego.anioLanzamiento, juego.clasificacionEdad?.nombre].filter(
+    (dato) => dato !== undefined && dato !== null && dato !== '',
+  )
+
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-lg bg-white shadow transition hover:shadow-md focus-within:ring-2 focus-within:ring-indigo-500">
       <ImagenJuego url={juego.imagenUrl} titulo={juego.titulo} className="aspect-[3/4] w-full" />
@@ -25,9 +35,7 @@ export function TarjetaJuego({ juego, pie }: TarjetaJuegoProps) {
             {juego.titulo}
           </Link>
         </h2>
-        <p className="text-sm text-slate-500">
-          {juego.anioLanzamiento} · {juego.clasificacionEdad.nombre}
-        </p>
+        {datos.length > 0 && <p className="text-sm text-slate-500">{datos.join(' · ')}</p>}
         <ListaEtiquetas items={juego.generos} chica />
         {/* "relative z-10" deja el pie por encima del link estirado, así sus botones se pueden tocar */}
         {pie && <div className="relative z-10 mt-auto pt-2">{pie}</div>}
