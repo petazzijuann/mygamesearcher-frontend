@@ -600,3 +600,32 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 2. `npm run test:e2e` con el backend levantado: pasan los 2 casos.
 3. En Vercel: importar el repo, cargar `VITE_API_URL` con la URL de producción del backend y publicar. Agregar la URL del frontend al `FRONTEND_URL` del backend y volver a publicarlo.
 4. En la app publicada, abrir directo una ruta como `/juegos` y recargar: tiene que cargar la app, no un 404 de Vercel.
+
+## Paso 16 - Arreglo: "Mi biblioteca" se rompía con juegos incompletos (08/10/2026)
+**Qué se hizo:** "Mi biblioteca" mostraba la pantalla "Algo salió mal" al entrar con sesión. Se corrigió el dato en el backend (lo hizo el grupo en su repo), y en el frontend la tarjeta de juego ahora tolera datos incompletos: si falta una lista, no la muestra, pero la pantalla no se rompe.
+
+**Diagnóstico:**
+- En la pestaña Red, los pedidos estaban bien: 204 era el preflight de CORS (`OPTIONS`) y 304, el `GET /biblioteca` respondido desde la caché del navegador.
+- La pantalla "Algo salió mal" es el `errorElement` del router, que aparece cuando un componente falla al dibujarse. No era un error de la API.
+- El openapi dice que cada `JuegoGuardado` trae el `Juego` completo, pero el backend solo traía la clasificación de edad (`RELACIONES = { juego: { clasificacionEdad: true } }`), sin `generos`.
+- `TarjetaJuego` muestra los géneros con `ListaEtiquetas`, que hacía `items.length` sobre `undefined` y rompía toda la pantalla.
+- Las pruebas contra la API del Paso 11 revisaron el filtro de la biblioteca, pero no la forma de cada juego; por eso no se detectó.
+
+**Cómo se hizo:**
+- Backend (repo `mygamesearcher-backend`, commit `f939f80`, hecho por el grupo): la biblioteca devuelve el juego con clasificación, plataformas, géneros y características, como dice su openapi.
+- Frontend: rama `fix/biblioteca-juego-incompleto` creada desde `dev`.
+  - `src/components/ListaEtiquetas/ListaEtiquetas.tsx`: `items` acepta `undefined` o `null` (lista que no llegó), y en ese caso no se muestra nada. Una lista vacía sigue mostrando el texto de vacío.
+  - `src/components/TarjetaJuego/TarjetaJuego.tsx`: nuevo tipo `JuegoTarjeta`, con lo mínimo obligatorio (`id`, `titulo` e `imagenUrl`) y año, clasificación y géneros opcionales. Muestra solo los datos que llegan. Un `Juego` completo sigue sirviendo, así que no cambió ninguna pantalla que la usa.
+  - Tests nuevos: `ListaEtiquetas.test.tsx` (3 casos: lista con items, vacía, y que no llegó) y `TarjetaJuego.test.tsx` (2 casos: juego completo y juego resumido, como llegaba desde la biblioteca).
+- Verificado: `npm run test` (10/10, los 5 de antes más los 5 nuevos), `npm run build` y `npm run lint` sin errores.
+
+**Por qué:**
+- **Arreglo en los dos lados:** el backend tenía que cumplir lo que documenta (solución de fondo), y el frontend no tiene que perder una pantalla entera por un dato secundario que falta.
+- **El tipo `JuegoTarjeta` y no `?.` sueltos sobre `Juego`:** TypeScript sabe que esos datos pueden faltar y obliga a contemplarlo, sin `any` ni conversiones forzadas. Es el mismo criterio del Paso 9 con el historial.
+- **No mostrar nada, y no "Ninguno", si la lista no llegó:** "Ninguno" diría que el juego no tiene géneros, y eso sería falso; en realidad no se sabe.
+
+**Requisito del TP que cubre:** errores manejados de forma amigable (un dato incompleto ya no deja la pantalla en "Algo salió mal") y componentes con props tipadas.
+
+**Cómo probarlo:**
+1. `npm run test`: pasan los 10 casos, incluidos los de juego incompleto.
+2. Con el backend actualizado y levantado, ingresar con un usuario que tenga juegos guardados y entrar a "Mi biblioteca": se ven las tarjetas con año, clasificación y géneros.
