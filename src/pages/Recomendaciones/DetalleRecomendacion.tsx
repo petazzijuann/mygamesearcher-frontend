@@ -124,6 +124,7 @@ export function DetalleRecomendacion() {
                     {formatearFechaHora(busqueda.fechaBusqueda)}
                   </time>
                 </h1>
+                <p className="text-sm font-medium text-indigo-700">{busqueda.tipo === 'IA' ? 'Generada mediante IA' : 'Generada por sistema'}</p>
                 <p className="mt-1 text-slate-600">Estos fueron los criterios que elegiste:</p>
               </div>
               <button
@@ -192,6 +193,7 @@ export function DetalleRecomendacion() {
                         <ListaEtiquetas items={recomendacion.juego.generos} chica />
                       </div>
                     </div>
+                    {recomendacion.motivo && <p className="text-sm text-slate-700">{recomendacion.motivo}</p>}
                     <FormularioCalificacion
                       busquedaId={busqueda.id}
                       recomendacion={recomendacion}

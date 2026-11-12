@@ -5,7 +5,10 @@ import type { Plataforma } from './plataforma.ts'
 import type { Recomendacion } from './recomendacion.ts'
 import type { Usuario } from './usuario.ts'
 
+export type TipoRecomendacion = 'SISTEMA' | 'IA'
+
 export interface Busqueda {
+  tipo: TipoRecomendacion
   id: number
   usuario: Usuario
   /** Fecha en formato ISO (date-time) */
@@ -37,6 +40,7 @@ export interface FiltroHistorial {
 }
 
 export interface GenerarRecomendacionDto {
+  tipo?: TipoRecomendacion
   plataformaIds: number[]
   generoIds: number[]
   caracteristicaIds?: number[] | null

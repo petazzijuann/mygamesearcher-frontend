@@ -67,7 +67,7 @@ export function obtenerMensajeError(error: unknown): string {
   // Sin respuesta (backend apagado, sin conexión o bloqueado por CORS), o 502/503/504
   // (el servidor intermedio no pudo llegar a la API).
   const status = error.response?.status
-  if (!error.response || status === 502 || status === 503 || status === 504) {
+  if (!error.response || ((status === 502 || status === 503 || status === 504) && !esErrorRespuesta(error.response.data))) {
     return 'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'
   }
   // En el login, el 401 trae el mensaje del backend (email o contraseña incorrectos).

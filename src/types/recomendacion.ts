@@ -5,6 +5,7 @@ export interface Recomendacion {
   id: number
   busqueda: Busqueda
   juego: Juego
+  motivo: string | null
   orden: number
   calificacion: number | null
   comentario: string | null

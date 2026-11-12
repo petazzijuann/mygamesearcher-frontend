@@ -235,6 +235,7 @@ export function HistorialRecomendaciones() {
                         {formatearFechaHora(busqueda.fechaBusqueda)}
                       </time>
                     </h2>
+                    <p className="text-sm font-medium text-indigo-700">{busqueda.tipo === 'IA' ? 'Generada mediante IA' : 'Generada por sistema'}</p>
                     <p className="text-sm text-slate-500">{resumirCriterios(busqueda)}</p>
                   </header>
 

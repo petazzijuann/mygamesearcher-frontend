@@ -12,7 +12,7 @@ import { caracteristicaService } from '../../services/caracteristicaService.ts'
 import { generoService } from '../../services/generoService.ts'
 import { plataformaService } from '../../services/plataformaService.ts'
 import { recomendacionService } from '../../services/recomendacionService.ts'
-import type { Busqueda } from '../../types/busqueda.ts'
+import type { Busqueda, TipoRecomendacion } from '../../types/busqueda.ts'
 import type { Caracteristica } from '../../types/caracteristica.ts'
 import type { Genero } from '../../types/genero.ts'
 import type { EstadoJuego } from '../../types/juegoGuardado.ts'
@@ -50,6 +50,7 @@ export function Recomendar() {
   /** Se incrementa con "Reintentar" para volver a disparar la carga */
   const [intento, setIntento] = useState(0)
 
+  const [tipo, setTipo] = useState<TipoRecomendacion>('SISTEMA')
   const [criterios, setCriterios] = useState<Criterios>({
     plataformaIds: [],
     generoIds: [],
@@ -109,6 +110,7 @@ export function Recomendar() {
     setSinResultados(null)
     try {
       const resultado = await recomendacionService.generar({
+        tipo,
         plataformaIds: criterios.plataformaIds,
         generoIds: criterios.generoIds,
         caracteristicaIds: criterios.caracteristicaIds.length > 0 ? criterios.caracteristicaIds : null,
@@ -173,6 +175,16 @@ export function Recomendar() {
             </div>
           )}
 
+          <fieldset disabled={generando} className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow sm:flex-row sm:flex-wrap">
+            <legend className="font-semibold text-slate-900">Modalidad de recomendación</legend>
+            {(['SISTEMA', 'IA'] as const).map((opcion) => (
+              <label key={opcion} className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 px-4 py-3 has-checked:border-indigo-600 has-checked:bg-indigo-50">
+                <input type="radio" name="tipo" value={opcion} checked={tipo === opcion} onChange={() => setTipo(opcion)} className="accent-indigo-700" />
+                Recomendación por {opcion === 'IA' ? 'IA' : 'sistema'}
+              </label>
+            ))}
+          </fieldset>
+          {generando && <Cargando texto={tipo === 'IA' ? 'La IA está analizando tus preferencias...' : 'Buscando juegos para vos...'} />}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <SelectorMultiple
               leyenda="¿En qué plataformas jugás?"
@@ -226,6 +238,7 @@ export function Recomendar() {
                   : `Te recomendamos estos ${recomendaciones.length} juegos`}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
+                {busqueda.tipo === 'IA' ? 'Generada mediante IA' : 'Generada por sistema'} ·{' '}
                 Para {busqueda.plataformas.map((p) => p.nombre).join(', ')} ·{' '}
                 {busqueda.generos.map((g) => g.nombre).join(', ')}
                 {busqueda.caracteristicas.length > 0 &&
@@ -251,6 +264,7 @@ export function Recomendar() {
                       <p className="text-sm font-semibold text-indigo-700">
                         Recomendación #{recomendacion.orden}
                       </p>
+                      {recomendacion.motivo && <p className="text-sm text-slate-700">{recomendacion.motivo}</p>}
                       <BotonesBiblioteca
                         juegoId={recomendacion.juego.id}
                         tituloJuego={recomendacion.juego.titulo}

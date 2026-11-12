@@ -116,3 +116,9 @@ La primera vez, antes de `npm run test:e2e`, hay que descargar el navegador: `np
 - [Índice de la documentación](./docs/README.md)
 - [Bitácora del desarrollo](./docs/bitacora.md): qué se hizo en cada paso, por qué y cómo probarlo
 - [Especificación de la API](./docs/api/openapi.json) (openapi del backend)
+
+## Recomendaciones con IA (Groq)
+
+La pantalla Recomendame permite elegir SISTEMA (predeterminado) o IA conservando los filtros. El backend recibe `tipo` en `POST /recomendaciones` y guarda modalidad y explicaciones en el historial.
+
+No configurar ninguna clave Groq en Vite. La integración usa la API existente y requiere el backend actualizado. Consultar la guía `mygamesearcher-backend/docs/recomendaciones-ia.md` para configuración, esquema y pruebas manuales.
