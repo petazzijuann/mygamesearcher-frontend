@@ -5,16 +5,23 @@ import { DialogoConfirmacion } from '../../components/DialogoConfirmacion/Dialog
 import { ImagenJuego } from '../../components/ImagenJuego/ImagenJuego.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { MensajeExito } from '../../components/MensajeExito/MensajeExito.tsx'
+import { Paginacion } from '../../components/Paginacion/Paginacion.tsx'
 import { obtenerMensajeError } from '../../services/api.ts'
 import { juegoService } from '../../services/juegoService.ts'
 import type { Juego } from '../../types/juego.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
 
+const JUEGOS_POR_PAGINA = 20
+
+// Listado de juegos para administrar, de a 20 por página.
 export function ListadoJuegosAdmin() {
   const location = useLocation()
   const navigate = useNavigate()
 
   const [juegos, setJuegos] = useState<Juego[]>([])
+  const [pagina, setPagina] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [totalPaginas, setTotalPaginas] = useState(0)
   const [cargando, setCargando] = useState(true)
   const [errorCarga, setErrorCarga] = useState<string | null>(null)
   const [mensajeExito, setMensajeExito] = useState<string | null>(() =>
@@ -27,14 +34,25 @@ export function ListadoJuegosAdmin() {
   const cargarJuegos = useCallback(async () => {
     setCargando(true)
     setErrorCarga(null)
+    let cambioDePagina = false
     try {
-      setJuegos(await juegoService.listar())
+      const respuesta = await juegoService.listar({ pagina, limite: JUEGOS_POR_PAGINA })
+      // Si la página quedó vacía (por ejemplo, al borrar el último juego de la última página),
+      // se pasa a la última que existe; el cambio de página vuelve a cargar
+      if (respuesta.datos.length === 0 && respuesta.totalPaginas > 0) {
+        cambioDePagina = true
+        setPagina(respuesta.totalPaginas)
+        return
+      }
+      setJuegos(respuesta.datos)
+      setTotal(respuesta.total)
+      setTotalPaginas(respuesta.totalPaginas)
     } catch (error) {
       setErrorCarga(obtenerMensajeError(error))
     } finally {
-      setCargando(false)
+      if (!cambioDePagina) setCargando(false)
     }
-  }, [])
+  }, [pagina])
 
   useEffect(() => {
     void cargarJuegos()
@@ -54,8 +72,9 @@ export function ListadoJuegosAdmin() {
     setMensajeExito(null)
     try {
       await juegoService.eliminar(aEliminar.id)
-      setJuegos((actuales) => actuales.filter((juego) => juego.id !== aEliminar.id))
       setMensajeExito(`Se eliminó el juego "${aEliminar.titulo}".`)
+      // Se recarga la página para completarla con el juego siguiente y actualizar el total
+      void cargarJuegos()
     } catch (error) {
       setErrorAccion(obtenerMensajeError(error))
     } finally {
@@ -95,6 +114,13 @@ export function ListadoJuegosAdmin() {
       {!cargando && !errorCarga && juegos.length === 0 && (
         <p className="rounded-md bg-white p-6 text-center text-slate-600 shadow">
           Todavía no hay juegos cargados. Usá el botón "Nuevo juego" para agregar.
+        </p>
+      )}
+
+      {!cargando && !errorCarga && juegos.length > 0 && (
+        <p className="text-sm text-slate-500" aria-live="polite">
+          {total} {total === 1 ? 'juego' : 'juegos'}
+          {totalPaginas > 1 && ` · Página ${pagina} de ${totalPaginas}`}
         </p>
       )}
 
@@ -169,6 +195,17 @@ export function ListadoJuegosAdmin() {
             ))}
           </tbody>
         </table>
+      )}
+
+      {!cargando && !errorCarga && (
+        <Paginacion
+          pagina={pagina}
+          totalPaginas={totalPaginas}
+          onCambiarPagina={(nueva) => {
+            setPagina(nueva)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+        />
       )}
 
       <DialogoConfirmacion

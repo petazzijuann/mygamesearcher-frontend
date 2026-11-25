@@ -629,3 +629,32 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 **Cómo probarlo:**
 1. `npm run test`: pasan los 10 casos, incluidos los de juego incompleto.
 2. Con el backend actualizado y levantado, ingresar con un usuario que tenga juegos guardados y entrar a "Mi biblioteca": se ven las tarjetas con año, clasificación y géneros.
+
+## Paso 17 - Listado de juegos paginado (25/11/2026)
+**Qué se hizo:** El listado de juegos dejó de pedir todo el catálogo (1061 juegos en la versión desplegada) y ahora muestra 20 por página con un paginador numerado. Responde a la corrección del profesor; el backend agregó el paginado en `GET /juegos` (Paso 23 de su bitácora).
+
+**Cómo se hizo:**
+- `src/types/juego.ts`: nuevas interfaces `JuegosPaginados` (la respuesta: `datos`, `total`, `pagina`, `limite`, `totalPaginas`) y `FiltroJuegos` (`titulo`, `pagina`, `limite`, todos opcionales).
+- `src/services/juegoService.ts`: `listar` recibe un `FiltroJuegos` y devuelve `JuegosPaginados`.
+- `src/components/Paginacion/Paginacion.tsx` (nuevo): botones "Anterior" y "Siguiente" y los números de página. Recibe `pagina` y `totalPaginas` (props de entrada) y avisa la página elegida con `onCambiarPagina` (prop de salida). En celular muestra "Página X de Y" en lugar de los números para no desbordar; desde SM, los números.
+- `src/utils/paginas.ts` (nuevo): `calcularPaginas` decide qué números mostrar (la primera, la última y la actual con sus vecinas, con "…" en los saltos).
+- `src/pages/Juegos/ListadoJuegos.tsx`: pide de a 20 y muestra el paginador. La página queda en la URL (`?pagina=3`), igual que el filtro. Una búsqueda nueva vuelve a la página 1.
+- `src/pages/Juegos/ListadoJuegosAdmin.tsx`: también de a 20 con el paginador. Al eliminar un juego se recarga la página para completarla y actualizar el total.
+- `src/pages/Colecciones/DetalleColeccion.tsx`: el buscador para agregar juegos trae los primeros 20 resultados y, si hay más, avisa que se puede escribir más del título para acotar.
+- `docs/api/openapi.json`: actualizado con la versión nueva del backend.
+- `src/components/Paginacion/Paginacion.test.tsx` (nuevo): 6 tests del cálculo de páginas y del componente.
+
+**Por qué:**
+- **Paginador numerado y no scroll infinito:** permite ir directo a una página, ver cuántas hay y volver con "Atrás" a la misma página. Es lo que se eligió con el grupo para las dos pantallas.
+- **La página en la URL del listado público:** al volver del detalle de un juego se sigue en la misma página, y el link se puede compartir.
+- **Página fuera de rango:** si la URL pide una página que ya no existe (por ejemplo `?pagina=999`), se pasa a la última que existe en vez de mostrar "no hay juegos".
+- **Sin dependencias nuevas:** el paginador es un componente propio.
+
+**Requisito del TP que cubre:** corrección de la entrega final (buenas prácticas en el listado de juegos); componentes con props de entrada y de salida, y CSS mobile-first.
+
+**Cómo probarlo:**
+1. `npm run test`: pasan los 19 casos (los 13 anteriores y los 6 de `Paginacion.test.tsx`).
+2. Con el backend actualizado, entrar a "Juegos": se ven 20 juegos, "1061 juegos encontrados · Página 1 de 54" y el paginador abajo. En la pestaña Red, el pedido es `GET /juegos?pagina=1&limite=20`.
+3. Ir a la página 3, entrar a un juego y volver: sigue en la página 3. Buscar "zelda": vuelve a la página 1 con los resultados filtrados.
+4. Achicar la ventana a celular: el paginador muestra "Página X de Y" entre "Anterior" y "Siguiente".
+5. En Administración → Juegos: el mismo paginador; al eliminar un juego, la página se completa con el siguiente.

@@ -37,3 +37,22 @@ export interface ActualizarJuegoDto {
   generoIds?: number[]
   caracteristicaIds?: number[]
 }
+
+// Respuesta de GET /juegos: una página de juegos y los datos para armar el paginador.
+export interface JuegosPaginados {
+  datos: Juego[]
+  /** Cantidad total de juegos que cumplen el filtro (en todas las páginas) */
+  total: number
+  /** Página devuelta, empieza en 1 */
+  pagina: number
+  limite: number
+  /** 0 si no hay juegos */
+  totalPaginas: number
+}
+
+// Parámetros opcionales del listado; sin pagina ni limite la API devuelve la página 1 con 20 juegos.
+export interface FiltroJuegos {
+  titulo?: string
+  pagina?: number
+  limite?: number
+}

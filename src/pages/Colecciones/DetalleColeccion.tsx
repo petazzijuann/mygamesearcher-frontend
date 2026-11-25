@@ -12,6 +12,9 @@ import type { Juego } from '../../types/juego.ts'
 import { formatearFecha } from '../../utils/fechas.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
 
+// El buscador para agregar juegos trae solo los primeros resultados (la API pagina el listado)
+const RESULTADOS_BUSQUEDA = 20
+
 // Detalle de una colección: muestra sus juegos y permite agregar o quitar
 // (CUU "Administrar colección").
 export function DetalleColeccion() {
@@ -34,6 +37,8 @@ export function DetalleColeccion() {
 
   const [textoBusqueda, setTextoBusqueda] = useState('')
   const [resultados, setResultados] = useState<Juego[] | null>(null)
+  /** Cuántos juegos coinciden en total; se muestran solo los primeros RESULTADOS_BUSQUEDA */
+  const [totalResultados, setTotalResultados] = useState(0)
   const [buscando, setBuscando] = useState(false)
   const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null)
 
@@ -70,7 +75,12 @@ export function DetalleColeccion() {
     setBuscando(true)
     setErrorBusqueda(null)
     try {
-      setResultados(await juegoService.listar(textoBusqueda))
+      const respuesta = await juegoService.listar({
+        titulo: textoBusqueda,
+        limite: RESULTADOS_BUSQUEDA,
+      })
+      setResultados(respuesta.datos)
+      setTotalResultados(respuesta.total)
     } catch (error) {
       setErrorBusqueda(obtenerMensajeError(error))
     } finally {
@@ -230,6 +240,13 @@ export function DetalleColeccion() {
 
               {resultados !== null && !buscando && !errorBusqueda && resultados.length === 0 && (
                 <p className="text-slate-600">No se encontraron juegos con ese título.</p>
+              )}
+
+              {resultados !== null && resultados.length > 0 && totalResultados > resultados.length && (
+                <p className="text-sm text-slate-500" aria-live="polite">
+                  Se muestran {resultados.length} de {totalResultados} juegos. Escribí más del título
+                  para encontrar el que buscás.
+                </p>
               )}
 
               {resultados !== null && resultados.length > 0 && (

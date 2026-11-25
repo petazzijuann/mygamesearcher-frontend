@@ -1,14 +1,23 @@
 import { api } from './api.ts'
-import type { ActualizarJuegoDto, CrearJuegoDto, Juego } from '../types/juego.ts'
+import type {
+  ActualizarJuegoDto,
+  CrearJuegoDto,
+  FiltroJuegos,
+  Juego,
+  JuegosPaginados,
+} from '../types/juego.ts'
 
 const RUTA = '/juegos'
 
 export const juegoService = {
-  /** Si se pasa un título, la API filtra los juegos que lo contienen */
-  async listar(titulo?: string): Promise<Juego[]> {
+  /**
+   * Devuelve una página de juegos. Si se pasa un título, la API filtra los juegos que lo contienen.
+   * Sin pagina ni limite, la API devuelve la página 1 con 20 juegos.
+   */
+  async listar({ titulo, pagina, limite }: FiltroJuegos = {}): Promise<JuegosPaginados> {
     const filtro = titulo?.trim()
-    const { data } = await api.get<Juego[]>(RUTA, {
-      params: filtro ? { titulo: filtro } : undefined,
+    const { data } = await api.get<JuegosPaginados>(RUTA, {
+      params: { titulo: filtro || undefined, pagina, limite },
     })
     return data
   },
