@@ -1,3 +1,5 @@
+import { Boton } from '../Boton/Boton.tsx'
+
 interface MensajeErrorProps {
   mensaje: string
   /** Si se pasa, se muestra un botón para volver a intentar */
@@ -12,13 +14,14 @@ export function MensajeError({ mensaje, onReintentar }: MensajeErrorProps) {
     >
       <p>{mensaje}</p>
       {onReintentar && (
-        <button
-          type="button"
+        <Boton
+          variante="peligro"
+          tamanio="chico"
           onClick={onReintentar}
-          className="self-start rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-red-100 sm:self-auto"
+          className="self-start sm:self-auto"
         >
           Reintentar
-        </button>
+        </Boton>
       )}
     </div>
   )

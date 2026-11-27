@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { Boton } from '../Boton/Boton.tsx'
 
 export interface ItemMenu {
   ruta: string
@@ -26,9 +27,10 @@ export function MenuNavegacion({ items, onNavegar, className = '' }: MenuNavegac
   return (
     <nav aria-label="Navegación principal" className={`relative ${className}`}>
       {/* Botón hamburguesa: en celulares y tablets (los links no entran en una fila hasta LG) */}
-      <button
-        type="button"
-        className="rounded-md p-2 text-white hover:bg-indigo-600 focus:ring-2 focus:ring-white focus:outline-none lg:hidden"
+      <Boton
+        variante="sobreOscuro"
+        tamanio="icono"
+        className="lg:hidden"
         aria-expanded={abierto}
         aria-controls="menu-principal"
         aria-label={abierto ? 'Cerrar menú' : 'Abrir menú'}
@@ -37,7 +39,7 @@ export function MenuNavegacion({ items, onNavegar, className = '' }: MenuNavegac
         <span aria-hidden="true" className="text-2xl leading-none">
           {abierto ? '✕' : '☰'}
         </span>
-      </button>
+      </Boton>
 
       <ul
         id="menu-principal"

@@ -9,6 +9,7 @@ import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import type { EstadoJuego, JuegoGuardado } from '../../types/juegoGuardado.ts'
 import { esEstadoJuego, estadosJuego, textoEstado } from '../../utils/estadoJuego.ts'
 import { formatearFecha } from '../../utils/fechas.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // Biblioteca personal: juegos marcados como "Me interesa" o "Ya jugado".
 // La pestaña elegida vive en la URL (?estado=...) y el filtro lo aplica la API.
@@ -77,16 +78,17 @@ export function MiBiblioteca() {
             const activa = pestania.estado === filtro
             return (
               <li key={pestania.texto} className="flex-1 sm:flex-none">
-                <button
-                  type="button"
+                <Boton
+                  variante="fantasma"
+                  tamanio="chico"
                   onClick={() => elegirPestania(pestania.estado)}
                   aria-pressed={activa}
-                  className={`w-full rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap ${
+                  className={`w-full whitespace-nowrap ${
                     activa ? 'bg-white text-indigo-700 shadow' : 'text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   {pestania.texto}
-                </button>
+                </Boton>
               </li>
             )
           })}

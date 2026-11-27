@@ -5,6 +5,7 @@ import { useSesion } from '../../context/sesion.ts'
 import { obtenerMensajeError } from '../../services/api.ts'
 import { authService } from '../../services/authService.ts'
 import { leerDestino } from '../../utils/destinoNavegacion.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 interface ErroresLogin {
   email?: string
@@ -134,13 +135,13 @@ export function Login() {
           )}
         </div>
 
-        <button
+        <Boton
           type="submit"
-          disabled={enviando}
-          className="rounded-md bg-indigo-700 px-4 py-2 font-semibold text-white hover:bg-indigo-600 disabled:opacity-50"
+          cargando={enviando}
+          textoCargando="Ingresando..."
         >
-          {enviando ? 'Ingresando...' : 'Ingresar'}
-        </button>
+          Ingresar
+        </Boton>
       </form>
 
       <p className="text-center text-slate-600">

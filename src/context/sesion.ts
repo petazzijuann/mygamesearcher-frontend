@@ -15,6 +15,11 @@ export interface ValorSesion {
 
 export const SesionContexto = createContext<ValorSesion | null>(null)
 
+// Canal para avisar a las otras pestañas de la app que se inició o se cerró la sesión.
+export const CANAL_SESION = 'dgame-sesion'
+
+export type MensajeSesion = { tipo: 'inicio' } | { tipo: 'cierre' }
+
 // Hook para leer la sesión desde cualquier componente que esté dentro de SesionProvider.
 export function useSesion(): ValorSesion {
   const valor = useContext(SesionContexto)

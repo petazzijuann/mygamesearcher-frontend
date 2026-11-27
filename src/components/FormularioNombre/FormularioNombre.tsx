@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Boton } from '../Boton/Boton.tsx'
 
 const LARGO_MAXIMO = 50
 
@@ -64,21 +65,12 @@ export function FormularioNombre({
       </div>
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={onCancelar}
-          disabled={guardando}
-          className="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-        >
+        <Boton variante="secundario" onClick={onCancelar} disabled={guardando}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={guardando}
-          className="rounded-md bg-indigo-700 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-50"
-        >
-          {guardando ? 'Guardando...' : textoBoton}
-        </button>
+        </Boton>
+        <Boton type="submit" cargando={guardando} textoCargando="Guardando...">
+          {textoBoton}
+        </Boton>
       </div>
     </form>
   )

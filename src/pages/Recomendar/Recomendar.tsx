@@ -1,9 +1,11 @@
 import axios from 'axios'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { Boton } from '../../components/Boton/Boton.tsx'
 import { BotonesBiblioteca } from '../../components/BotonesBiblioteca/BotonesBiblioteca.tsx'
 import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
+import { OpcionRadio } from '../../components/OpcionRadio/OpcionRadio.tsx'
 import { SelectorMultiple } from '../../components/SelectorMultiple/SelectorMultiple.tsx'
 import { TarjetaJuego } from '../../components/TarjetaJuego/TarjetaJuego.tsx'
 import { obtenerMensajeError } from '../../services/api.ts'
@@ -178,10 +180,14 @@ export function Recomendar() {
           <fieldset disabled={generando} className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow sm:flex-row sm:flex-wrap">
             <legend className="font-semibold text-slate-900">Modalidad de recomendación</legend>
             {(['SISTEMA', 'IA'] as const).map((opcion) => (
-              <label key={opcion} className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 px-4 py-3 has-checked:border-indigo-600 has-checked:bg-indigo-50">
-                <input type="radio" name="tipo" value={opcion} checked={tipo === opcion} onChange={() => setTipo(opcion)} className="accent-indigo-700" />
-                Recomendación por {opcion === 'IA' ? 'IA' : 'sistema'}
-              </label>
+              <OpcionRadio
+                key={opcion}
+                name="tipo"
+                value={opcion}
+                checked={tipo === opcion}
+                onChange={() => setTipo(opcion)}
+                etiqueta={`Recomendación por ${opcion === 'IA' ? 'IA' : 'sistema'}`}
+              />
             ))}
           </fieldset>
           {generando && <Cargando texto={tipo === 'IA' ? 'La IA está analizando tus preferencias...' : 'Buscando juegos para vos...'} />}
@@ -213,13 +219,15 @@ export function Recomendar() {
             />
           </div>
 
-          <button
+          <Boton
             type="submit"
-            disabled={generando}
-            className="rounded-md bg-indigo-700 px-6 py-3 text-lg font-semibold text-white hover:bg-indigo-600 disabled:opacity-50 sm:self-end"
+            tamanio="grande"
+            cargando={generando}
+            textoCargando="Buscando juegos para vos..."
+            className="sm:self-end"
           >
-            {generando ? 'Buscando juegos para vos...' : 'Recomendame juegos'}
-          </button>
+            Recomendame juegos
+          </Boton>
         </form>
       )}
 
@@ -245,13 +253,9 @@ export function Recomendar() {
                   ` · ${busqueda.caracteristicas.map((c) => c.nombre).join(', ')}`}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setBusqueda(null)}
-              className="rounded-md border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 hover:bg-slate-100"
-            >
+            <Boton variante="secundario" onClick={() => setBusqueda(null)}>
               Cambiar criterios
-            </button>
+            </Boton>
           </div>
 
           <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

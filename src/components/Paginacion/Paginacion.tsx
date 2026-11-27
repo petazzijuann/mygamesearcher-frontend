@@ -1,4 +1,5 @@
 import { calcularPaginas, SALTO } from '../../utils/paginas.ts'
+import { Boton } from '../Boton/Boton.tsx'
 
 interface PaginacionProps {
   /** Página actual, empieza en 1 */
@@ -9,9 +10,6 @@ interface PaginacionProps {
   /** Texto para lectores de pantalla, por si hay más de un paginador en la página */
   etiqueta?: string
 }
-
-const claseBoton =
-  'min-w-10 rounded-md border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40'
 
 // Paginador numerado: Anterior, números de página y Siguiente.
 // En celular solo muestra "Página X de Y" entre los botones para no desbordar.
@@ -25,14 +23,14 @@ export function Paginacion({
 
   return (
     <nav aria-label={etiqueta} className="flex items-center justify-center gap-2">
-      <button
-        type="button"
+      <Boton
+        variante="secundario"
+        tamanio="chico"
         onClick={() => onCambiarPagina(pagina - 1)}
         disabled={pagina <= 1}
-        className={`${claseBoton} border-slate-300 bg-white text-slate-700 hover:bg-slate-100`}
       >
         <span aria-hidden="true">←</span> Anterior
-      </button>
+      </Boton>
 
       <p className="px-2 text-sm text-slate-600 sm:hidden">
         Página {pagina} de {totalPaginas}
@@ -46,32 +44,29 @@ export function Paginacion({
             </li>
           ) : (
             <li key={item}>
-              <button
-                type="button"
+              <Boton
+                variante={item === pagina ? 'primario' : 'secundario'}
+                tamanio="chico"
                 onClick={() => onCambiarPagina(item)}
                 aria-label={`Página ${item}`}
                 aria-current={item === pagina ? 'page' : undefined}
-                className={`${claseBoton} ${
-                  item === pagina
-                    ? 'border-indigo-700 bg-indigo-700 text-white'
-                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-                }`}
+                className="min-w-10"
               >
                 {item}
-              </button>
+              </Boton>
             </li>
           ),
         )}
       </ul>
 
-      <button
-        type="button"
+      <Boton
+        variante="secundario"
+        tamanio="chico"
         onClick={() => onCambiarPagina(pagina + 1)}
         disabled={pagina >= totalPaginas}
-        className={`${claseBoton} border-slate-300 bg-white text-slate-700 hover:bg-slate-100`}
       >
         Siguiente <span aria-hidden="true">→</span>
-      </button>
+      </Boton>
     </nav>
   )
 }

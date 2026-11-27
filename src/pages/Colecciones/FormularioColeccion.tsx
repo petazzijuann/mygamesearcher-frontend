@@ -4,6 +4,7 @@ import { Cargando } from '../../components/Cargando/Cargando.tsx'
 import { MensajeError } from '../../components/MensajeError/MensajeError.tsx'
 import { obtenerMensajeError } from '../../services/api.ts'
 import { coleccionService } from '../../services/coleccionService.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // Mismos límites que CrearColeccionDto en el backend.
 const LARGO_NOMBRE = 100
@@ -186,21 +187,16 @@ export function FormularioColeccion() {
           </div>
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
+            <Boton
+              variante="secundario"
               onClick={() => navigate('/colecciones')}
               disabled={guardando}
-              className="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
             >
               Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={guardando}
-              className="rounded-md bg-indigo-700 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-50"
-            >
-              {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear colección'}
-            </button>
+            </Boton>
+            <Boton type="submit" cargando={guardando} textoCargando="Guardando...">
+              {esEdicion ? 'Guardar cambios' : 'Crear colección'}
+            </Boton>
           </div>
         </form>
       )}

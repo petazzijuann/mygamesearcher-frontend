@@ -3,6 +3,7 @@ import { obtenerMensajeError } from '../../services/api.ts'
 import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import type { EstadoJuego } from '../../types/juegoGuardado.ts'
 import { estadosJuego, textoEstado } from '../../utils/estadoJuego.ts'
+import { Boton } from '../Boton/Boton.tsx'
 
 const iconoEstado: Record<EstadoJuego, string> = {
   ME_INTERESA: '⭐',
@@ -50,22 +51,19 @@ export function BotonesBiblioteca({ juegoId, tituloJuego, estado, onCambio }: Bo
         {estadosJuego.map((opcion) => {
           const marcado = estado === opcion
           return (
-            <button
+            <Boton
               key={opcion}
-              type="button"
+              variante={marcado ? 'primario' : 'secundario'}
+              tamanio="chico"
               onClick={() => void alternar(opcion)}
               disabled={procesando}
               aria-pressed={marcado}
               title={marcado ? 'Tocá de nuevo para quitarlo de tu biblioteca' : undefined}
-              className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition disabled:opacity-50 ${
-                marcado
-                  ? 'border-indigo-700 bg-indigo-700 text-white hover:bg-indigo-600'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
+              className="flex-1 whitespace-nowrap"
             >
               <span aria-hidden="true">{iconoEstado[opcion]} </span>
               {textoEstado[opcion]}
-            </button>
+            </Boton>
           )
         })}
       </div>

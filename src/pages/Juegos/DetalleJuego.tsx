@@ -12,6 +12,7 @@ import { bibliotecaService } from '../../services/bibliotecaService.ts'
 import { juegoService } from '../../services/juegoService.ts'
 import type { Juego } from '../../types/juego.ts'
 import type { EstadoJuego } from '../../types/juegoGuardado.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // Muestra si el juego está en la biblioteca del usuario y permite cambiarlo.
 // La API no tiene un endpoint para un solo juego: se trae la biblioteca y se busca ahí.
@@ -103,13 +104,9 @@ export function DetalleJuego() {
 
   return (
     <section className="flex flex-col gap-6">
-      <button
-        type="button"
-        onClick={volver}
-        className="self-start text-sm font-medium text-indigo-700 hover:underline"
-      >
+      <Boton variante="enlace" onClick={volver} className="self-start">
         ← Volver
-      </button>
+      </Boton>
 
       {cargando && <Cargando texto="Cargando juego..." />}
 

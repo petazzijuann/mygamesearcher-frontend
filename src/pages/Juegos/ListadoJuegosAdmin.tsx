@@ -10,6 +10,7 @@ import { obtenerMensajeError } from '../../services/api.ts'
 import { juegoService } from '../../services/juegoService.ts'
 import type { Juego } from '../../types/juego.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 const JUEGOS_POR_PAGINA = 20
 
@@ -181,14 +182,15 @@ export function ListadoJuegosAdmin() {
                     >
                       Editar
                     </Link>
-                    <button
-                      type="button"
+                    <Boton
+                      variante="peligro"
+                      tamanio="chico"
                       onClick={() => setAEliminar(juego)}
                       aria-label={`Eliminar ${juego.titulo}`}
-                      className="flex-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 md:flex-none"
+                      className="flex-1 md:flex-none"
                     >
                       Eliminar
-                    </button>
+                    </Boton>
                   </div>
                 </td>
               </tr>

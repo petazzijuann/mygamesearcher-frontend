@@ -9,6 +9,7 @@ import { coleccionService } from '../../services/coleccionService.ts'
 import type { Coleccion } from '../../types/coleccion.ts'
 import { formatearFecha } from '../../utils/fechas.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 export function ListadoColecciones() {
   const location = useLocation()
@@ -129,14 +130,15 @@ export function ListadoColecciones() {
                   >
                     Editar
                   </Link>
-                  <button
-                    type="button"
+                  <Boton
+                    variante="peligro"
+                    tamanio="chico"
                     onClick={() => setAEliminar(coleccion)}
                     aria-label={`Eliminar ${coleccion.nombre}`}
-                    className="flex-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+                    className="flex-1"
                   >
                     Eliminar
-                  </button>
+                  </Boton>
                 </div>
               </article>
             </li>

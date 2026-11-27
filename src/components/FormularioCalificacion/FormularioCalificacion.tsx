@@ -4,6 +4,7 @@ import { recomendacionService } from '../../services/recomendacionService.ts'
 import type { Recomendacion } from '../../types/recomendacion.ts'
 import { formatearFecha } from '../../utils/fechas.ts'
 import { SelectorEstrellas } from '../SelectorEstrellas/SelectorEstrellas.tsx'
+import { Boton } from '../Boton/Boton.tsx'
 
 // Mismo límite que CalificarRecomendacionDto en el backend.
 const LARGO_COMENTARIO = 500
@@ -116,17 +117,14 @@ export function FormularioCalificacion({
             </time>
           </p>
         )}
-        <button
+        <Boton
           type="submit"
-          disabled={guardando}
-          className="rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 disabled:opacity-50 sm:ml-auto"
+          cargando={guardando}
+          textoCargando="Guardando..."
+          className="text-sm sm:ml-auto"
         >
-          {guardando
-            ? 'Guardando...'
-            : recomendacion.calificacion === null
-              ? 'Guardar calificación'
-              : 'Actualizar calificación'}
-        </button>
+          {recomendacion.calificacion === null ? 'Guardar calificación' : 'Actualizar calificación'}
+        </Boton>
       </div>
     </form>
   )

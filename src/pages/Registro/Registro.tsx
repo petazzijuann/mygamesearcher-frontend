@@ -8,6 +8,7 @@ import { plataformaService } from '../../services/plataformaService.ts'
 import { usuarioService } from '../../services/usuarioService.ts'
 import type { Plataforma } from '../../types/plataforma.ts'
 import { leerDestino } from '../../utils/destinoNavegacion.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // Mismos límites que CrearUsuarioDto en el backend.
 const LARGO_NOMBRE = 50
@@ -284,13 +285,14 @@ export function Registro() {
           </Campo>
         )}
 
-        <button
+        <Boton
           type="submit"
-          disabled={enviando}
-          className="rounded-md bg-indigo-700 px-4 py-2 font-semibold text-white hover:bg-indigo-600 disabled:opacity-50 sm:col-span-2"
+          cargando={enviando}
+          textoCargando="Creando cuenta..."
+          className="sm:col-span-2"
         >
-          {enviando ? 'Creando cuenta...' : 'Crear cuenta'}
-        </button>
+          Crear cuenta
+        </Boton>
       </form>
 
       <p className="text-center text-slate-600">

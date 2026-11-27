@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Boton } from '../Boton/Boton.tsx'
 
 interface BuscadorProps {
   /** Texto con el que arranca el campo (por ejemplo, el que viene en la URL) */
@@ -65,14 +66,15 @@ export function Buscador({
           className="w-full rounded-md border border-slate-300 bg-white py-2 pr-10 pl-10 focus:ring-2 focus:ring-indigo-500 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
         />
         {texto !== '' && (
-          <button
-            type="button"
+          <Boton
+            variante="fantasma"
+            tamanio="icono"
             onClick={() => setTexto('')}
             aria-label="Limpiar búsqueda"
-            className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-slate-500 hover:bg-slate-100"
+            className="absolute top-1/2 right-2 -translate-y-1/2 text-slate-500 hover:bg-slate-100"
           >
             <span aria-hidden="true">✕</span>
-          </button>
+          </Boton>
         )}
       </div>
     </form>

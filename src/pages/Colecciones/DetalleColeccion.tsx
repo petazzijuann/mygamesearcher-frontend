@@ -11,6 +11,7 @@ import type { Coleccion } from '../../types/coleccion.ts'
 import type { Juego } from '../../types/juego.ts'
 import { formatearFecha } from '../../utils/fechas.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // El buscador para agregar juegos trae solo los primeros resultados (la API pagina el listado)
 const RESULTADOS_BUSQUEDA = 20
@@ -190,15 +191,17 @@ export function DetalleColeccion() {
                         <p className="truncate font-medium text-slate-900">{juego.titulo}</p>
                         <p className="text-sm text-slate-500">{juego.anioLanzamiento}</p>
                       </div>
-                      <button
-                        type="button"
+                      <Boton
+                        variante="peligro"
+                        tamanio="chico"
                         onClick={() => void quitarJuego(juego)}
                         disabled={juegoEnProceso !== null}
+                        cargando={juegoEnProceso === juego.id}
+                        textoCargando="Quitando..."
                         aria-label={`Quitar ${juego.titulo} de la colección`}
-                        className="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                       >
-                        {juegoEnProceso === juego.id ? 'Quitando...' : 'Quitar'}
-                      </button>
+                        Quitar
+                      </Boton>
                     </li>
                   ))}
                 </ul>
@@ -227,13 +230,9 @@ export function DetalleColeccion() {
                   maxLength={100}
                   className="flex-1 rounded-md border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
-                <button
-                  type="submit"
-                  disabled={buscando}
-                  className="rounded-md bg-indigo-700 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-50"
-                >
-                  {buscando ? 'Buscando...' : 'Buscar'}
-                </button>
+                <Boton type="submit" cargando={buscando} textoCargando="Buscando...">
+                  Buscar
+                </Boton>
               </form>
 
               {errorBusqueda && <MensajeError mensaje={errorBusqueda} />}
@@ -267,23 +266,20 @@ export function DetalleColeccion() {
                           <p className="truncate font-medium text-slate-900">{juego.titulo}</p>
                           <p className="text-sm text-slate-500">{juego.anioLanzamiento}</p>
                         </div>
-                        <button
-                          type="button"
+                        <Boton
+                          tamanio="chico"
                           onClick={() => void agregarJuego(juego)}
                           disabled={yaAgregado || juegoEnProceso !== null}
+                          cargando={juegoEnProceso === juego.id}
+                          textoCargando="Agregando..."
                           aria-label={
                             yaAgregado
                               ? `${juego.titulo} ya está en la colección`
                               : `Agregar ${juego.titulo} a la colección`
                           }
-                          className="rounded-md bg-indigo-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600 disabled:bg-slate-300 disabled:text-slate-600"
                         >
-                          {yaAgregado
-                            ? 'Ya agregado'
-                            : juegoEnProceso === juego.id
-                              ? 'Agregando...'
-                              : 'Agregar'}
-                        </button>
+                          {yaAgregado ? 'Ya agregado' : 'Agregar'}
+                        </Boton>
                       </li>
                     )
                   })}

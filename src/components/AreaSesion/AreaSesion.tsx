@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSesion } from '../../context/sesion.ts'
+import { Boton } from '../Boton/Boton.tsx'
 
 // Parte derecha del encabezado: "Ingresar" sin sesión; saludo y "Cerrar sesión" con sesión.
 export function AreaSesion() {
@@ -34,13 +35,14 @@ export function AreaSesion() {
           <span className="ml-1 rounded bg-indigo-900 px-1.5 py-0.5 text-xs">ADMIN</span>
         )}
       </span>
-      <button
-        type="button"
+      <Boton
+        variante="sobreOscuro"
+        tamanio="chico"
         onClick={salir}
-        className="rounded-md border border-indigo-300 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-white hover:bg-indigo-600"
+        className="border border-indigo-300 whitespace-nowrap"
       >
         Cerrar sesión
-      </button>
+      </Boton>
     </div>
   )
 }

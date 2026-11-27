@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CLAVE_TOKEN, CLAVE_USUARIO, EVENTO_SESION_VENCIDA } from '../services/api.ts'
 import type { RespuestaLoginDto, UsuarioLogin } from '../types/auth.ts'
-import { SesionContexto, type ValorSesion } from './sesion.ts'
+import { CANAL_SESION, SesionContexto, type MensajeSesion, type ValorSesion } from './sesion.ts'
 
 function esUsuarioLogin(valor: unknown): valor is UsuarioLogin {
   return (
@@ -43,10 +43,31 @@ function leerSesionGuardada(): UsuarioLogin | null {
   return null
 }
 
+function esMensajeSesion(valor: unknown): valor is MensajeSesion {
+  return (
+    typeof valor === 'object' &&
+    valor !== null &&
+    'tipo' in valor &&
+    (valor.tipo === 'inicio' || valor.tipo === 'cierre')
+  )
+}
+
+// Abre el canal entre pestañas. Si el navegador no tiene BroadcastChannel, cada pestaña
+// sigue funcionando por su cuenta (se pone al día al recargar).
+function abrirCanal(): BroadcastChannel | null {
+  return typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(CANAL_SESION)
+}
+
 // Guarda la sesión (token + usuario) y la comparte con toda la app.
 export function SesionProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<UsuarioLogin | null>(leerSesionGuardada)
   const [vencida, setVencida] = useState(false)
+  const canalRef = useRef<BroadcastChannel | null>(null)
+
+  // Avisa a las otras pestañas. postMessage no le llega a la pestaña que lo manda.
+  const avisarOtrasPestanias = useCallback((mensaje: MensajeSesion) => {
+    canalRef.current?.postMessage(mensaje)
+  }, [])
 
   const iniciarSesion = useCallback((respuesta: RespuestaLoginDto) => {
     try {
@@ -57,35 +78,51 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     }
     setVencida(false)
     setUsuario(respuesta.usuario)
-  }, [])
+    avisarOtrasPestanias({ tipo: 'inicio' })
+  }, [avisarOtrasPestanias])
 
   const cerrarSesion = useCallback(() => {
     borrarSesionGuardada()
     setUsuario(null)
-  }, [])
+    avisarOtrasPestanias({ tipo: 'cierre' })
+  }, [avisarOtrasPestanias])
 
   const olvidarVencimiento = useCallback(() => setVencida(false), [])
 
   useEffect(() => {
-    // La API rechazó el token (lo avisa el interceptor de api.ts).
+    // La API rechazó el token (lo avisa el interceptor de api.ts). Como el token es el mismo
+    // en todas las pestañas, también se les avisa que la sesión se cerró.
     function alVencer() {
       borrarSesionGuardada()
       setUsuario(null)
       setVencida(true)
-    }
-    // Si se entra o se sale en otra pestaña, esta se pone al día.
-    function alCambiarOtraPestania(evento: StorageEvent) {
-      if (evento.key === CLAVE_TOKEN || evento.key === CLAVE_USUARIO || evento.key === null) {
-        setUsuario(leerSesionGuardada())
-      }
+      avisarOtrasPestanias({ tipo: 'cierre' })
     }
     window.addEventListener(EVENTO_SESION_VENCIDA, alVencer)
-    window.addEventListener('storage', alCambiarOtraPestania)
+
+    // Se escucha un aviso explícito de la app ("se inició" o "se cerró la sesión") y no el
+    // evento 'storage', que salta ante cualquier escritura en localStorage, aunque no sea de la sesión.
+    const canal = abrirCanal()
+    canalRef.current = canal
+    function alRecibirAviso(evento: MessageEvent<unknown>) {
+      if (!esMensajeSesion(evento.data)) return
+      if (evento.data.tipo === 'inicio') {
+        // El token y el usuario ya están en localStorage, que se comparte entre pestañas
+        setVencida(false)
+        setUsuario(leerSesionGuardada())
+      } else {
+        setUsuario(null)
+      }
+    }
+    canal?.addEventListener('message', alRecibirAviso)
+
     return () => {
       window.removeEventListener(EVENTO_SESION_VENCIDA, alVencer)
-      window.removeEventListener('storage', alCambiarOtraPestania)
+      canal?.removeEventListener('message', alRecibirAviso)
+      canal?.close()
+      canalRef.current = null
     }
-  }, [])
+  }, [avisarOtrasPestanias])
 
   const valor = useMemo<ValorSesion>(
     () => ({

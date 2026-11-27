@@ -15,6 +15,7 @@ import type { ClasificacionEdad } from '../../types/clasificacionEdad.ts'
 import type { Genero } from '../../types/genero.ts'
 import type { CrearJuegoDto, Juego } from '../../types/juego.ts'
 import type { Plataforma } from '../../types/plataforma.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // Mismos límites que CrearJuegoDto en el backend.
 const LARGO_TITULO = 100
@@ -448,21 +449,16 @@ export function FormularioJuego() {
           </p>
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
+            <Boton
+              variante="secundario"
               onClick={() => navigate('/admin/juegos')}
               disabled={guardando}
-              className="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
             >
               Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={guardando}
-              className="rounded-md bg-indigo-700 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-50"
-            >
-              {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear juego'}
-            </button>
+            </Boton>
+            <Boton type="submit" cargando={guardando} textoCargando="Guardando...">
+              {esEdicion ? 'Guardar cambios' : 'Crear juego'}
+            </Boton>
           </div>
         </form>
       )}

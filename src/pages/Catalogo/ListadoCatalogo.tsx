@@ -8,6 +8,7 @@ import { obtenerMensajeError } from '../../services/api.ts'
 import type { ItemCatalogo } from '../../services/catalogoService.ts'
 import { leerMensajeNavegacion } from '../../utils/mensajeNavegacion.ts'
 import { textosCatalogo, type ConfigCatalogo } from './configCatalogos.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 interface ListadoCatalogoProps {
   config: ConfigCatalogo
@@ -134,14 +135,15 @@ export function ListadoCatalogo({ config }: ListadoCatalogoProps) {
                     >
                       Editar
                     </Link>
-                    <button
-                      type="button"
+                    <Boton
+                      variante="peligro"
+                      tamanio="chico"
                       onClick={() => setAEliminar(item)}
                       aria-label={`Eliminar ${item.nombre}`}
-                      className="flex-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 md:flex-none"
+                      className="flex-1 md:flex-none"
                     >
                       Eliminar
-                    </button>
+                    </Boton>
                   </div>
                 </td>
               </tr>

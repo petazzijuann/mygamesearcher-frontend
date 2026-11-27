@@ -11,6 +11,7 @@ import { recomendacionService } from '../../services/recomendacionService.ts'
 import type { Busqueda } from '../../types/busqueda.ts'
 import type { Recomendacion } from '../../types/recomendacion.ts'
 import { formatearFechaHora } from '../../utils/fechas.ts'
+import { Boton } from '../../components/Boton/Boton.tsx'
 
 // Detalle de una búsqueda del historial (/recomendaciones/:id): criterios usados,
 // juegos recomendados y calificación de cada uno.
@@ -96,13 +97,9 @@ export function DetalleRecomendacion() {
 
   return (
     <section className="flex flex-col gap-6">
-      <button
-        type="button"
-        onClick={volver}
-        className="self-start text-sm font-medium text-indigo-700 hover:underline"
-      >
+      <Boton variante="enlace" onClick={volver} className="self-start">
         ← Volver al historial
-      </button>
+      </Boton>
 
       {cargando && <Cargando texto="Cargando recomendación..." />}
 
@@ -127,13 +124,13 @@ export function DetalleRecomendacion() {
                 <p className="text-sm font-medium text-indigo-700">{busqueda.tipo === 'IA' ? 'Generada mediante IA' : 'Generada por sistema'}</p>
                 <p className="mt-1 text-slate-600">Estos fueron los criterios que elegiste:</p>
               </div>
-              <button
-                type="button"
+              <Boton
+                variante="peligro"
                 onClick={() => setConfirmandoBorrado(true)}
-                className="self-start rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                className="self-start text-sm"
               >
                 Borrar del historial
-              </button>
+              </Boton>
             </div>
 
             {errorBorrado && <MensajeError mensaje={errorBorrado} />}

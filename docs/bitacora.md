@@ -658,3 +658,34 @@ Lo que no se pudo verificar automáticamente es el aspecto visual en los tres br
 3. Ir a la página 3, entrar a un juego y volver: sigue en la página 3. Buscar "zelda": vuelve a la página 1 con los resultados filtrados.
 4. Achicar la ventana a celular: el paginador muestra "Página X de Y" entre "Anterior" y "Siguiente".
 5. En Administración → Juegos: el mismo paginador; al eliminar un juego, la página se completa con el siguiente.
+
+## Paso 18 - Componentes Boton y OpcionRadio en toda la app, y sesión entre pestañas por canal (27/11/2026)
+**Qué se hizo:** Dos correcciones del profesor:
+1. En "Recomendame" (y en el resto de la app) se repetían las clases de Tailwind de botones y opciones. Se crearon los componentes base `Boton` y `OpcionRadio`, que encapsulan los estilos y el comportamiento básico, y todos los botones de la app pasaron a usar `Boton`.
+2. `SesionProvider` actualizaba la sesión con el evento `storage`, que avisa de cualquier escritura en `localStorage`, no de un cambio de sesión. Ahora las pestañas se avisan explícitamente con un `BroadcastChannel`.
+
+**Cómo se hizo:**
+- `src/components/Boton/Boton.tsx` (nuevo): estado `cargando` (se deshabilita, muestra un indicador y `textoCargando`, con `aria-busy`), y es `type="button"` por defecto para no enviar formularios sin querer. Acepta todas las props de un `<button>` y `className` suma clases de ubicación (`flex-1`, `sm:self-end`, ...).
+  - Variantes: `primario` (acción principal), `secundario` (Cancelar, Limpiar), `peligro` (Eliminar, Quitar, Reintentar), `peligroSolido` (confirmar un borrado), `enlace` (← Volver), `fantasma` (sin colores propios: pestañas de la biblioteca y botones ✕) y `sobreOscuro` (menú y "Cerrar sesión" en el encabezado, con anillo de foco blanco).
+  - Tamaños: `chico` (tarjetas y tablas), `normal`, `grande` e `icono`.
+- Se reemplazaron los 33 `<button>` restantes por `Boton` en 22 archivos: `AreaSesion`, `BotonesBiblioteca`, `Buscador`, `DialogoConfirmacion`, `FormularioCalificacion`, `FormularioNombre`, `MensajeError`, `MensajeExito`, `MenuNavegacion`, `Paginacion` y las pantallas de biblioteca, catálogos, colecciones, juegos, login, registro y recomendaciones. Los textos de "Guardando...", "Buscando...", "Quitando...", etc. ahora salen de `cargando` y `textoCargando`.
+- `src/components/OpcionRadio/OpcionRadio.tsx` (nuevo): opción de radio con forma de tarjeta, resaltada cuando está elegida.
+- `src/pages/Recomendar/Recomendar.tsx`: usa `Boton` ("Recomendame juegos" y "Cambiar criterios") y `OpcionRadio` (modalidad sistema o IA).
+- `src/context/sesion.ts`: nombre del canal (`CANAL_SESION`) y tipo de los mensajes (`inicio` / `cierre`).
+- `src/context/SesionProvider.tsx`: se quitó el listener de `storage`. Al iniciar sesión, cerrarla o vencer el token, se avisa por el canal; las otras pestañas, al recibir `inicio`, leen la sesión guardada y, al recibir `cierre`, la cierran.
+- Tests nuevos: `Boton.test.tsx` (4) y `SesionProvider.test.tsx` (4).
+
+**Por qué:**
+- **Componentes base:** un solo lugar para los estilos de botón; cambiar el color o el foco se hace una vez. `Boton` también resuelve comportamiento repetido (el texto y el bloqueo mientras se envía) y les da a todos los botones el mismo anillo de foco al navegar con teclado.
+- **Variantes en vez de pasar colores por `className`:** si dos clases de Tailwind pisan la misma propiedad (por ejemplo dos `bg-`), gana la que aparece después en el CSS y no la última escrita, así que los colores van solo en la variante. `fantasma` existe para los pocos casos con colores propios, y no trae ninguno.
+- **Diferencias visuales menores aceptadas:** los botones "Ingresar" y "Crear cuenta" pasan de negrita a seminegrita como el resto, y "Agregar" deshabilitado se ve atenuado en vez de gris.
+- **BroadcastChannel y no `storage`:** `storage` se dispara ante cualquier cambio en `localStorage` (de cualquier clave) y no dice qué pasó. El canal manda un mensaje con intención ("se inició", "se cerró"), solo entre pestañas de la app, y no le llega a la pestaña que lo envía. Se descartó releer la sesión al volver a la pestaña (`visibilitychange`), porque una pestaña en segundo plano seguiría mostrando una sesión ya cerrada hasta que se la mire.
+- Si el navegador no tiene `BroadcastChannel`, cada pestaña funciona sola y se pone al día al recargar. No hacen falta dependencias nuevas.
+
+**Requisito del TP que cubre:** corrección de la entrega final (componentes reutilizables con props de entrada y de salida, y manejo de la sesión).
+
+**Cómo probarlo:**
+1. `npm run test`: pasan los 27 casos (los 19 anteriores y los 8 nuevos).
+2. "Recomendame": la tarjeta de modalidad elegida se resalta; al enviar, el botón dice "Buscando juegos para vos..." y no se puede volver a tocar.
+3. Recorrer las pantallas (login, juegos, colecciones, biblioteca, historial y administración) en celular y en escritorio: los botones mantienen su aspecto y, con Tab, muestran el anillo de foco.
+4. Abrir la app en dos pestañas e iniciar sesión en una: la otra muestra al usuario sin recargar. Cerrar sesión en una: la otra también queda sin sesión.
